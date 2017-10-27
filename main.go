@@ -35,14 +35,12 @@ func main() {
 		Desc:   "System Code of the application",
 		EnvVar: "APP_SYSTEM_CODE",
 	})
-
 	appName := app.String(cli.StringOpt{
 		Name:   "app-name",
 		Value:  "concept-exporter",
 		Desc:   "Application name",
 		EnvVar: "APP_NAME",
 	})
-
 	port := app.String(cli.StringOpt{
 		Name:   "port",
 		Value:  "8080",
@@ -69,7 +67,7 @@ func main() {
 	})
 	conceptTypes := app.Strings(cli.StringsOpt{
 		Name:   "conceptTypes",
-		Value:  []string{"Brand", "Topic"},
+		Value:  []string{"Brand", "Topic", "Location", "People"},
 		Desc:   "Concept types to support",
 		EnvVar: "CONCEPT_TYPES",
 	})

@@ -32,9 +32,9 @@ func (s *NeoService) Read(conceptType string, conceptCh chan Concept) (int, bool
 	//TODO maybe we need limit & offset to void high memory
 	query := &neoism.CypherQuery{
 		Statement: fmt.Sprintf(`
-				MATCH (c:%s)-[:MENTIONS|MAJOR_MENTIONS|ABOUT|IS_CLASSIFIED_BY|IS_PRIMARILY_CLASSIFIED_BY|HAS_AUTHOR]-(cc:Content)
-MATCH (c)-[:EQUIVALENT_TO]->(x:Thing)
-RETURN DISTINCT x.prefUUID AS Uuid,  x.prefLabel AS PrefLabel, labels(c) AS Labels limit 5
+			MATCH (c:%s)-[:MENTIONS|MAJOR_MENTIONS|ABOUT|IS_CLASSIFIED_BY|IS_PRIMARILY_CLASSIFIED_BY|HAS_AUTHOR]-(cc:Content)
+			MATCH (c)-[:EQUIVALENT_TO]->(x:Thing)
+			RETURN DISTINCT x.prefUUID AS Uuid,  x.prefLabel AS PrefLabel, labels(c) AS Labels
 				`, conceptType),
 		Result:       &results,
 	}
