@@ -1,0 +1,66 @@
+package db
+
+import (
+	"github.com/Financial-Times/neo-utils-go/neoutils"
+	"github.com/jmcvetta/neoism"
+	"fmt"
+	"github.com/Financial-Times/neo-model-utils-go/mapper"
+)
+
+type Service interface {
+	Read(conceptType string, conceptCh chan Concept) (int, bool, error)
+}
+
+type NeoService struct {
+	NeoURL     string
+	Connection neoutils.NeoConnection
+}
+
+func NewNeoService(conn neoutils.NeoConnection, neoURL string) *NeoService {
+	return &NeoService{Connection: conn, NeoURL: neoURL}
+}
+
+type Concept struct {
+	Uuid      string
+	PrefLabel string
+	ApiUrl    string
+	Labels    []string
+}
+
+func (s *NeoService) Read(conceptType string, conceptCh chan Concept) (int, bool, error) {
+	results := []Concept{}
+	//TODO maybe we need limit & offset to void high memory
+	query := &neoism.CypherQuery{
+		Statement: fmt.Sprintf(`
+				MATCH (c:%s)-[:MENTIONS|MAJOR_MENTIONS|ABOUT|IS_CLASSIFIED_BY|IS_PRIMARILY_CLASSIFIED_BY|HAS_AUTHOR]-(cc:Content)
+MATCH (c)-[:EQUIVALENT_TO]->(x:Thing)
+RETURN DISTINCT x.prefUUID AS Uuid,  x.prefLabel AS PrefLabel, labels(c) AS Labels limit 5
+				`, conceptType),
+		Result:       &results,
+	}
+
+	err := s.Connection.CypherBatch([]*neoism.CypherQuery{query})
+
+	if err != nil {
+		return 0, false, err
+	}
+	if len(results) == 0 {
+		return 0, false, nil
+	}
+	go func() {
+		defer close(conceptCh)
+		for _, c := range results {
+			c.ApiUrl = mapper.APIURL(c.Uuid, c.Labels, "")
+			conceptCh <- c
+		}
+	}()
+	return len(results), true, nil
+}
+
+func (s *NeoService) CheckConnectivity() (string, error) {
+	err := neoutils.Check(s.Connection)
+	if err != nil {
+		return "Could not connect to Neo", err
+	}
+	return "Neo could be reached", nil
+}
