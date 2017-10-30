@@ -43,7 +43,11 @@ func (e *CsvExporter) Write(c db.Concept, conceptType, tid string) error {
 	rec = append(rec, c.Uuid)
 	rec = append(rec, c.PrefLabel)
 	rec = append(rec, c.ApiUrl)
-	//append others if not empty
+	if conceptType == "Organisation" {
+		rec = append(rec, c.LeiCode)
+		rec = append(rec, c.FactsetId)
+		rec = append(rec, c.FIGI)
+	}
 
 	return e.Writer[conceptType].Writer.Write(rec)
 }
@@ -54,7 +58,7 @@ func (e *CsvExporter) GetFileName(conceptType string) string {
 
 func getHeader(conceptType string) []string {
 	if conceptType == "Organisation" {
-		return []string{"uuid", "prefLabel", "apiUrl", "LEICode", "factsetID", "FIGICode"}
+		return []string{"uuid", "prefLabel", "apiUrl", "leiCode", "factsetId", "FIGI"}
 	}
 	return []string{"uuid", "prefLabel", "apiUrl"}
 }

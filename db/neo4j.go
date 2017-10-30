@@ -25,17 +25,30 @@ type Concept struct {
 	PrefLabel string
 	ApiUrl    string
 	Labels    []string
+	LeiCode string
+	FactsetId string
+	FIGI string
 }
 
 func (s *NeoService) Read(conceptType string, conceptCh chan Concept) (int, bool, error) {
 	results := []Concept{}
 	//TODO maybe we need limit & offset to void high memory
-	query := &neoism.CypherQuery{
-		Statement: fmt.Sprintf(`
+	stmt := `
 			MATCH (c:%s)-[:MENTIONS|MAJOR_MENTIONS|ABOUT|IS_CLASSIFIED_BY|IS_PRIMARILY_CLASSIFIED_BY|HAS_AUTHOR]-(cc:Content)
 			MATCH (c)-[:EQUIVALENT_TO]->(x:Thing)
-			RETURN DISTINCT x.prefUUID AS Uuid,  x.prefLabel AS PrefLabel, labels(c) AS Labels
-				`, conceptType),
+			RETURN DISTINCT x.prefUUID AS Uuid, x.prefLabel AS PrefLabel, labels(c) AS Labels
+				`
+	if conceptType == "Organisation" {
+		stmt = `
+			MATCH (c:%s)-[:MENTIONS|MAJOR_MENTIONS|ABOUT|IS_CLASSIFIED_BY|IS_PRIMARILY_CLASSIFIED_BY|HAS_AUTHOR]-(cc:Content)
+			OPTIONAL MATCH (factset:FactsetIdentifier)-[:IDENTIFIES]->(c)
+	    	OPTIONAL MATCH (lei:LegalEntityIdentifier)-[:IDENTIFIES]->(c)
+	    	OPTIONAL MATCH (c)<-[:ISSUED_BY]-(fi:FinancialInstrument)<-[:IDENTIFIES]-(figi:FIGIIdentifier)
+			RETURN DISTINCT c.uuid AS Uuid, c.prefLabel AS PrefLabel, labels(c) AS Labels, factset.value as factsetId, lei.value as leiCode, figi.value as FIGI
+				`
+	}
+	query := &neoism.CypherQuery{
+		Statement: fmt.Sprintf(stmt, conceptType),
 		Result:       &results,
 	}
 
