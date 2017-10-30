@@ -12,7 +12,7 @@ type Job struct {
 	sync.RWMutex
 	wg           sync.WaitGroup
 	NrWorker     int                `json:"-"`
-	Workers      []concept.Worker `json:"ConceptWorkers,omitempty"`
+	Workers      []*concept.Worker `json:"ConceptWorkers,omitempty"`
 	ID           string             `json:"ID"`
 	Concepts     []string            `json:"Concepts,omitempty"`
 	Progress     []string                `json:"Progress,omitempty"`
@@ -58,9 +58,9 @@ func (fe *Service) GetCurrentJob() Job {
 }
 
 func (fe *Service) getJob() Job {
-	workers := make([]concept.Worker, len(fe.job.Workers))
+	var workers []*concept.Worker
 	for _, w := range fe.job.Workers {
-		workers = append(workers, concept.Worker{
+		workers = append(workers, &concept.Worker{
 			ConceptType:  w.ConceptType,
 			Progress:     w.Progress,
 			Status:       w.Status,
@@ -92,7 +92,7 @@ func (fe *Service) setJobStatus(state concept.State) {
 	fe.job.Status = state
 }
 
-func (fe *Service) setJobWorkers(workers []concept.Worker) {
+func (fe *Service) setJobWorkers(workers []*concept.Worker) {
 	fe.Lock()
 	defer fe.Unlock()
 	fe.job.Workers = workers
@@ -161,10 +161,10 @@ func (fe *Service) incWorkerProgress(worker *concept.Worker) {
 	worker.Progress++
 }
 
-func (fe *Service) runExport(worker concept.Worker, tid string) {
-	fe.setWorkerState(&worker, concept.RUNNING)
+func (fe *Service) runExport(worker *concept.Worker, tid string) {
+	fe.setWorkerState(worker, concept.RUNNING)
 	defer func() {
-		fe.setWorkerState(&worker, concept.FINISHED)
+		fe.setWorkerState(worker, concept.FINISHED)
 	}()
 	fe.setJobProgress(worker.ConceptType)
 	for {
@@ -175,12 +175,12 @@ func (fe *Service) runExport(worker concept.Worker, tid string) {
 				if err != nil {
 					log.WithField("transaction_id", tid).Errorf("Upload to S3 Writer failed: %v", err)
 					fe.setJobFailed(worker.ConceptType)
-					fe.setWorkerErrorMessage(&worker, fmt.Sprintf("%s %s", worker.ErrorMessage, err.Error()))
+					fe.setWorkerErrorMessage(worker, fmt.Sprintf("%s %s", worker.ErrorMessage, err.Error()))
 				}
 
 				return
 			}
-			fe.incWorkerProgress(&worker)
+			fe.incWorkerProgress(worker)
 			fe.Exporter.Write(c, worker.ConceptType, tid)
 		case err, ok := <-worker.Errch:
 			if !ok {
@@ -188,7 +188,8 @@ func (fe *Service) runExport(worker concept.Worker, tid string) {
 				return
 			}
 			fe.setJobFailed(worker.ConceptType)
-			fe.setWorkerErrorMessage(&worker, fmt.Sprintf("%s %s", worker.ErrorMessage, err.Error()))
+			fe.setWorkerErrorMessage(worker, fmt.Sprintf("%s %s", worker.ErrorMessage, err.Error()))
+			return
 		}
 	}
 

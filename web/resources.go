@@ -96,25 +96,25 @@ func extractCandidateConceptTypesFromRequest(request *http.Request) (candidates 
 	var result map[string]interface{}
 	body, err := ioutil.ReadAll(request.Body)
 	if err != nil {
-		log.Debugf("No valid POST body found, thus no candidate cTypes to export. Parsing error: %v", err)
+		log.Debugf("No valid POST body found, thus no candidate concept types to export. Parsing error: %v", err)
 		return
 	}
 
 	if err = json.Unmarshal(body, &result); err != nil {
-		log.Debugf("No valid json body found, thus no candidate cTypes to export. Parsing error: %v", err)
+		log.Debugf("No valid json body found, thus no candidate concept types to export. Parsing error: %v", err)
 		return
 	}
 	log.Infof("DEBUG Parsing request body: %v", result)
 	cTypes, ok := result["conceptTypes"]
 	if !ok {
-		log.Infof("No cTypes field found in json body, thus no candidate cTypes to export.")
+		log.Infof("No conceptTypes field found in json body, thus no candidate concept types to export.")
 		return
 	}
 	cTypesString, ok := cTypes.(string)
 	if ok {
 		candidates = strings.Split(cTypesString, " ")
 	} else {
-		log.Infof("The cTypes field found in json body is not a string as expected.")
+		log.Infof("The conceptTypes field found in json body is not a string as expected.")
 	}
 
 	return
