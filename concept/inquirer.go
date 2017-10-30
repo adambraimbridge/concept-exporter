@@ -20,22 +20,22 @@ type Worker struct {
 	ConceptType string          `json:"ConceptType,omitempty"`
 	Count int                   `json:"Count,omitempty"`
 	Progress int                `json:"Progress,omitempty"`
-	Status   State              `json:"Status"`
+	Status   State              `json:"Status,omitempty"`
 	ErrorMessage string         `json:"ErrorMessage,omitempty"`
 }
 
 type Inquirer interface {
-	Inquire(tid string, candidates []string) []*Worker
+	Inquire(tid string, candidates []string) []Worker
 }
 
 type NeoInquirer struct {
 	Neo db.Service
 }
 
-func (n *NeoInquirer) Inquire(tid string, candidates []string) []*Worker {
-	var workers []*Worker
+func (n *NeoInquirer) Inquire(tid string, candidates []string) []Worker {
+	var workers []Worker
 	for _, cType := range candidates {
-		worker := &Worker{ConceptType: cType, Errch: make(chan error, 2), ConceptCh: make(chan db.Concept), Status: STARTING}
+		worker := Worker{ConceptType: cType, Errch: make(chan error, 2), ConceptCh: make(chan db.Concept), Status: STARTING}
 		workers = append(workers, worker)
 	}
 	go func() {

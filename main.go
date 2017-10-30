@@ -67,7 +67,7 @@ func main() {
 	})
 	conceptTypes := app.Strings(cli.StringsOpt{
 		Name:   "conceptTypes",
-		Value:  []string{"Brand", "Topic", "Location", "People"},
+		Value:  []string{"Brand", "Topic", "Location", "Person"},
 		Desc:   "Concept types to support",
 		EnvVar: "CONCEPT_TYPES",
 	})

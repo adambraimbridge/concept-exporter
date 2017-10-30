@@ -1,11 +1,11 @@
 package main
 
 import (
-	health "github.com/Financial-Times/go-fthealth/v1_1"
-	"github.com/Financial-Times/service-status-go/gtg"
+	"fmt"
 	"github.com/Financial-Times/concept-exporter/concept"
 	"github.com/Financial-Times/concept-exporter/db"
-	"fmt"
+	health "github.com/Financial-Times/go-fthealth/v1_1"
+	"github.com/Financial-Times/service-status-go/gtg"
 )
 
 const healthPath = "/__health"
@@ -19,8 +19,8 @@ type healthConfig struct {
 	appSystemCode string
 	appName       string
 	port          string
-	s3Uploader             *concept.S3Updater
-	neoService *db.NeoService
+	s3Uploader    *concept.S3Updater
+	neoService    *db.NeoService
 }
 
 func newHealthService(config *healthConfig) *healthService {
@@ -42,7 +42,6 @@ func (service *healthService) NeoCheck() health.Check {
 		Checker:          service.config.neoService.CheckConnectivity,
 	}
 }
-
 
 func (service *healthService) S3WriterCheck() health.Check {
 	return health.Check{
