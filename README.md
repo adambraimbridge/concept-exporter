@@ -1,18 +1,16 @@
 # concept-exporter
-_Should be the same as the github repo name but it isn't always._
 
 [![Circle CI](https://circleci.com/gh/Financial-Times/concept-exporter/tree/master.png?style=shield)](https://circleci.com/gh/Financial-Times/concept-exporter/tree/master)[![Go Report Card](https://goreportcard.com/badge/github.com/Financial-Times/concept-exporter)](https://goreportcard.com/report/github.com/Financial-Times/concept-exporter) [![Coverage Status](https://coveralls.io/repos/github/Financial-Times/concept-exporter/badge.svg)](https://coveralls.io/github/Financial-Times/concept-exporter)
 
 ## Introduction
 
-_What is this service and what is it for? What other services does it depend on_
-
-Exports concept from a data source (Neo4j) and sends it to S3
+The service is used for automated concept exports. The concepts are taken from Neo4j, they are bundled into csv files and sent to S3 via UPP Export S3 Writer.
+There are 2 types of exports:
+* A *FULL export* consists in inquiring all supported concepts from the DB
+* A *TARGETED export* is similar to the FULL export but triggering only for specific concept types
 
 ## Installation
       
-_How can I install it_
-
 Download the source code, dependencies and test dependencies:
 
         go get -u github.com/kardianos/govendor
@@ -22,7 +20,6 @@ Download the source code, dependencies and test dependencies:
         go build .
 
 ## Running locally
-_How can I run it_
 
 1. Run the tests and install the binary:
 
@@ -36,47 +33,105 @@ _How can I run it_
 
 Options:
 
-        --app-system-code="concept-exporter"            System Code of the application ($APP_SYSTEM_CODE)
-        --app-name="concept-exporter"                   Application name ($APP_NAME)
-        --port="8080"                                           Port to listen on ($APP_PORT)
-        
+        Usage: concept-exporter [OPTIONS]
+
+        Exports concept from a data source (Neo4j) and sends it to S3
+
+        Options:
+          --app-system-code="concept-exporter"                                      System Code of the application ($APP_SYSTEM_
+        CODE)
+          --app-name="concept-exporter"                                             Application name ($APP_NAME)
+          --port="9090"                                                             Port to listen on ($APP_PORT)
+          --neo-url="http://localhost:7474/db/data"                                 neo4j endpoint URL ($NEO_URL)
+          --s3WriterBaseURL="http://localhost:8080"                                 Base URL to S3 writer endpoint ($S3_WRITER_B
+        ASE_URL)
+          --s3WriterHealthURL="http://localhost:8080/__gtg"                         Health URL to S3 writer endpoint ($S3_WRITER
+        _HEALTH_URL)
+          --conceptTypes=["Brand", "Topic", "Location", "Person", "Organisation"]   Concept types to support ($CONCEPT_TYPES)
+
 3. Test:
 
-    1. Either using curl:
-
-            curl http://localhost:8080/people/143ba45c-2fb3-35bc-b227-a6ed80b5c517 | json_pp
-
-    1. Or using [httpie](https://github.com/jkbrzt/httpie):
-
-            http GET http://localhost:8080/people/143ba45c-2fb3-35bc-b227-a6ed80b5c517
+         curl http://localhost:8080/__health
 
 ## Build and deployment
-_How can I build and deploy it (lots of this will be links out as the steps will be common)_
 
 * Built by Docker Hub on merge to master: [coco/concept-exporter](https://hub.docker.com/r/coco/concept-exporter/)
 * CI provided by CircleCI: [concept-exporter](https://circleci.com/gh/Financial-Times/concept-exporter)
 
 ## Service endpoints
-_What are the endpoints offered by the service_
+
+### POST
+* `/export` - Triggers an export. If `conceptTypes` is in the json body request, then a TARGETED export is triggered, otherwise a FULL export
 
 e.g.
+A FULL export:
+
+    curl localhost:8080/__concept-exporter/export -XPOST
+    {"ID":"job_753c6005-dcf0-4381-96b9-aeac0d0c01c8","Concepts":["Brand","Topic","Location","Person","Organisation"],"Status":"Starting"}
+
+A TARGETED export:
+
+    curl localhost:8080/__concept-exporter/export -XPOST -d '{"conceptTypes":"Brand Topic"}'
+    {"ID":"job_d6706835-5f72-4585-ba97-c454ea62dba6","Concepts":["Brand","Topic"],"Status":"Starting"}
+
 ### GET
+* `/job` - Returns the running job information
 
-Using curl:
+e.g.
 
-    curl http://localhost:8080/people/143ba45c-2fb3-35bc-b227-a6ed80b5c517 | json_pp`
-
-Or using [httpie](https://github.com/jkbrzt/httpie):
-
-    http GET http://localhost:8080/people/143ba45c-2fb3-35bc-b227-a6ed80b5c517
-
-The expected response will contain information about the person, and the organisations they are connected to (via memberships).
-
-Based on the following [google doc](https://docs.google.com/document/d/1SC4Uskl-VD78y0lg5H2Gq56VCmM4OFHofZM-OvpsOFo/edit#heading=h.qjo76xuvpj83).
-
+    curl http://localhost:8080/job | jq ''`
+    {
+      "ConceptWorkers": [
+        {
+          "ConceptType": "Brand",
+          "Count": 335,
+          "Progress": 335,
+          "Status": "Finished"
+        },
+        {
+          "ConceptType": "Topic",
+          "Count": 760,
+          "Progress": 760,
+          "Status": "Finished"
+        },
+        {
+          "ConceptType": "Location",
+          "Count": 13093,
+          "Progress": 13093,
+          "Status": "Finished"
+        },
+        {
+          "ConceptType": "Person",
+          "Count": 39668,
+          "Progress": 39668,
+          "Status": "Finished"
+        },
+        {
+          "ConceptType": "Organisation",
+          "Count": 80972,
+          "Progress": 80972,
+          "Status": "Finished"
+        }
+      ],
+      "ID": "job_753c6005-dcf0-4381-96b9-aeac0d0c01c8",
+      "Concepts": [
+        "Brand",
+        "Topic",
+        "Location",
+        "Person",
+        "Organisation"
+      ],
+      "Progress": [
+        "Brand",
+        "Topic",
+        "Location",
+        "Person",
+        "Organisation"
+      ],
+      "Status": "Finished"
+    }
 
 ## Utility endpoints
-_Endpoints that are there for support or testing, e.g read endpoints on the writers_
 
 ## Healthchecks
 Admin endpoints are:
@@ -87,23 +142,12 @@ Admin endpoints are:
 
 `/__build-info`
 
-_These standard endpoints do not need to be specifically documented._
-
-_This section *should* however explain what checks are done to determine health and gtg status._
-
 There are several checks performed:
 
-_e.g._
-* Checks that a connection can be made to Neo4j, using the neo4j url supplied as a parameter in service startup.
-
-## Other information
-_Anything else you want to add._
-
-_e.g. (NB: this example may be something we want to extract as it's probably common to a lot of services)_
+* Checks that a connection can be made to Neo4j, using the neo4j url supplied as a parameter in service startup
+* Checks that the S3 Writer service is healthy
 
 ### Logging
 
 * The application uses [logrus](https://github.com/sirupsen/logrus); the log file is initialised in [main.go](main.go).
-* Logging requires an `env` app parameter, for all environments other than `local` logs are written to file.
-* When running locally, logs are written to console. If you want to log locally to file, you need to pass in an env parameter that is != `local`.
 * NOTE: `/__build-info` and `/__gtg` endpoints are not logged as they are called every second from varnish/vulcand and this information is not needed in logs/splunk.

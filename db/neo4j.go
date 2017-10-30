@@ -32,7 +32,6 @@ type Concept struct {
 
 func (s *NeoService) Read(conceptType string, conceptCh chan Concept) (int, bool, error) {
 	results := []Concept{}
-	//TODO maybe we need limit & offset to void high memory
 	stmt := `
 			MATCH (c:%s)-[:MENTIONS|MAJOR_MENTIONS|ABOUT|IS_CLASSIFIED_BY|IS_PRIMARILY_CLASSIFIED_BY|HAS_AUTHOR]-(cc:Content)
 			MATCH (c)-[:EQUIVALENT_TO]->(x:Thing)
