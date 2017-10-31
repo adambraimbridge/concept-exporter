@@ -1,0 +1,18 @@
+{
+  "prefUUID":"dbb0bdae-1f0c-1a1a-b0cb-b2227cce2b54",
+  "prefLabel": "Financial Times",
+  "type":"Brand",
+  "sourceRepresentations": [
+    {
+      "description": "The Financial Times (FT) is one of the world’s leading business news and information organisations, recognised internationally for its authority, integrity and accuracy.",
+      "descriptionXML": "<p>The Financial Times (FT) is one of the world’s leading business news and information organisations, recognised internationally for its authority, integrity and accuracy.</p>",
+      "prefLabel": "Financial Times",
+      "strapline": "Make the right connections",
+      "_imageUrl": "http://aboutus.ft.com/files/2010/11/ft-logo.gif",
+      "type": "Brand",
+      "uuid": "dbb0bdae-1f0c-1a1a-b0cb-b2227cce2b54",
+      "authority": "TME",
+      "authorityValue": "FOOBAR-FT"
+    }
+  ]
+}

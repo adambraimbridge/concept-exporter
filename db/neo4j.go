@@ -54,9 +54,11 @@ func (s *NeoService) Read(conceptType string, conceptCh chan Concept) (int, bool
 	err := s.Connection.CypherBatch([]*neoism.CypherQuery{query})
 
 	if err != nil {
+		close(conceptCh)
 		return 0, false, err
 	}
 	if len(results) == 0 {
+		close(conceptCh)
 		return 0, false, nil
 	}
 	go func() {

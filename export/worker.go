@@ -136,7 +136,7 @@ func (fe *Service) RunFullExport(tid string) {
 		return
 	}
 
-	fe.setJobWorkers(fe.Inquirer.Inquire(tid, fe.job.Concepts))
+	fe.setJobWorkers(fe.Inquirer.Inquire(fe.job.Concepts, tid))
 
 	for _, worker := range fe.job.Workers {
 		fe.runExport(worker, tid)

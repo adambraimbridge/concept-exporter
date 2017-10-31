@@ -1,0 +1,21 @@
+{
+  "prefUUID":"ff691bf8-8d92-1a1a-8326-c273400bff0b",
+  "prefLabel": "Business School video",
+  "type":"Brand",
+  "aliases": [
+    "Business School video"
+  ],
+  "sourceRepresentations": [
+    {
+      "parentUUIDs": ["dbb0bdae-1f0c-1a1a-b0cb-b2227cce2b54"],
+      "prefLabel": "Business School video",
+      "type": "Brand",
+      "uuid": "ff691bf8-8d92-1a1a-8326-c273400bff0b",
+      "aliases": [
+        "Business School video"
+      ],
+      "authority": "TME",
+      "authorityValue":"MTVkNjNmNzctOTA3Mi00NGMwLThmOWUtMmI4MGIyODRiNmI0-QnJhbmRz"
+    }
+  ]
+}

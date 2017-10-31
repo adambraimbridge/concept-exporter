@@ -102,7 +102,7 @@ func main() {
 
 		uploader := &concept.S3Updater{Client: client, S3WriterBaseURL: *s3WriterBaseURL, S3WriterHealthURL: *s3WriterHealthURL}
 		neoService := db.NewNeoService(neoConn, *neoURL)
-		fullExporter := export.NewFullExporter(30, uploader, &concept.NeoInquirer{Neo: neoService},
+		fullExporter := export.NewFullExporter(30, uploader, concept.NewNeoInquirer(neoService),
 			export.NewCsvExporter())
 
 		go func() {

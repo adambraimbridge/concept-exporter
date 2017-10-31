@@ -25,14 +25,18 @@ type Worker struct {
 }
 
 type Inquirer interface {
-	Inquire(tid string, candidates []string) []*Worker
+	Inquire(candidates []string, tid string) []*Worker
 }
 
 type NeoInquirer struct {
 	Neo db.Service
 }
 
-func (n *NeoInquirer) Inquire(tid string, candidates []string) []*Worker {
+func NewNeoInquirer(neo db.Service) *NeoInquirer {
+	return &NeoInquirer{Neo:neo}
+}
+
+func (n *NeoInquirer) Inquire(candidates []string, tid string) []*Worker {
 	var workers []*Worker
 	for _, cType := range candidates {
 		worker := &Worker{ConceptType: cType, Errch: make(chan error, 2), ConceptCh: make(chan db.Concept), Status: STARTING}
