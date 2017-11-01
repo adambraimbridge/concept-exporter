@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/Financial-Times/concept-exporter/db"
 	log "github.com/sirupsen/logrus"
+	"sync"
 )
 
 type State string
@@ -15,6 +16,7 @@ const (
 )
 
 type Worker struct {
+	sync.RWMutex
 	ConceptCh   chan db.Concept `json:"-"`
 	Errch       chan error      `json:"-"`
 	ConceptType string          `json:"ConceptType,omitempty"`
@@ -22,6 +24,18 @@ type Worker struct {
 	Progress int                `json:"Progress,omitempty"`
 	Status   State              `json:"Status,omitempty"`
 	ErrorMessage string         `json:"ErrorMessage,omitempty"`
+}
+
+func (w *Worker) setCount(count int) {
+	w.Lock()
+	defer w.Unlock()
+	w.Count = count
+}
+
+func (w *Worker) GetCount() int {
+	w.Lock()
+	defer w.Unlock()
+	return w.Count
 }
 
 type Inquirer interface {
@@ -57,7 +71,7 @@ func (n *NeoInquirer) Inquire(candidates []string, tid string) []*Worker {
 				continue
 			}
 			log.WithField("transaction_id", tid).Infof("Found %v entries for %v concept", count, worker.ConceptType)
-			worker.Count = count
+			worker.setCount(count)
 		}
 		log.WithField("transaction_id", tid).Info("Finished Neo read")
 	}()

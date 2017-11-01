@@ -65,7 +65,7 @@ func (fe *Service) getJob() Job {
 			Progress:     w.Progress,
 			Status:       w.Status,
 			ErrorMessage: w.ErrorMessage,
-			Count:        w.Count,
+			Count:        w.GetCount(),
 		})
 	}
 	return Job{

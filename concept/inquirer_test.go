@@ -20,7 +20,6 @@ func (m *mockDbService) Read(conceptType string, conceptCh chan db.Concept) (int
 }
 
 func TestNeoInquirer_InquireSuccessfully(t *testing.T) {
-	t.Log("TestNeoInquirer_InquireSuccessfully - Why is this test failing?")
 	mockDb := new(mockDbService)
 	inquirer := NewNeoInquirer(mockDb)
 
@@ -29,11 +28,11 @@ func TestNeoInquirer_InquireSuccessfully(t *testing.T) {
 
 	workers := inquirer.Inquire([]string{cType}, "tid_1234")
 
-	time.Sleep(3 * time.Second)
+	time.Sleep(500 * time.Millisecond)
 
 	assert.Equal(t, 1,len(workers))
 	assert.Equal(t, cType, workers[0].ConceptType)
-	assert.Equal(t, 2 ,workers[0].Count)
+	assert.Equal(t, 2 ,workers[0].GetCount())
 	assert.Equal(t, STARTING ,workers[0].Status)
 	assert.Equal(t, 0, len(workers[0].Errch))
 	mockDb.AssertExpectations(t)
@@ -52,7 +51,7 @@ func TestNeoInquirer_InquireSuccessfullyWithEmptyResult(t *testing.T) {
 
 	assert.Equal(t, 1,len(workers))
 	assert.Equal(t, cType, workers[0].ConceptType)
-	assert.Equal(t, 0 ,workers[0].Count)
+	assert.Equal(t, 0 ,workers[0].GetCount())
 	assert.Equal(t, STARTING ,workers[0].Status)
 	assert.Equal(t, 1, len(workers[0].Errch))
 	assert.Equal(t, fmt.Sprintf("Reading %v concept type from Neo returned empty result", cType), (<-workers[0].Errch).Error())
@@ -72,7 +71,7 @@ func TestNeoInquirer_InquireWithError(t *testing.T) {
 
 	assert.Equal(t, 1,len(workers))
 	assert.Equal(t, cType, workers[0].ConceptType)
-	assert.Equal(t, 0 ,workers[0].Count)
+	assert.Equal(t, 0 ,workers[0].GetCount())
 	assert.Equal(t, STARTING ,workers[0].Status)
 	assert.Equal(t, 1, len(workers[0].Errch))
 	assert.Equal(t, "Neo err", (<-workers[0].Errch).Error())
