@@ -31,6 +31,10 @@ const (
 
 var allUUIDs = []string{contentUUID, brandParentUUID, brandChildUUID, brandGrandChildUUID, FakebookConceptUUID, financialInstrumentUUID}
 
+func init() {
+	logger.InitLogger("concept-exporter", "ERROR")
+}
+
 func getDatabaseConnection(t *testing.T) neoutils.NeoConnection {
 	if testing.Short() {
 		t.Skip("Neo4j integration for long tests only.")
@@ -201,7 +205,6 @@ func assertListContainsAll(t *testing.T, list interface{}, items ...interface{})
 }
 
 func writeAnnotation(t *testing.T, conn neoutils.NeoConnection, pathToJson, platform string) {
-	logger.InitDefaultLogger("concept-exporter")
 	annrw := annotations.NewCypherAnnotationsService(conn)
 	assert.NoError(t, annrw.Initialise())
 	writeJSONToAnnotationService(t, annrw, pathToJson, contentUUID, platform)

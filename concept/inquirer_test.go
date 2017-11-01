@@ -20,6 +20,7 @@ func (m *mockDbService) Read(conceptType string, conceptCh chan db.Concept) (int
 }
 
 func TestNeoInquirer_InquireSuccessfully(t *testing.T) {
+	t.Log("TestNeoInquirer_InquireSuccessfully - Why is this test failing?")
 	mockDb := new(mockDbService)
 	inquirer := NewNeoInquirer(mockDb)
 
