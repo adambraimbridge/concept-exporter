@@ -28,7 +28,7 @@ func TestNeoInquirer_InquireSuccessfully(t *testing.T) {
 
 	workers := inquirer.Inquire([]string{cType}, "tid_1234")
 
-	time.Sleep(500 * time.Millisecond)
+	time.Sleep(3 * time.Second)
 
 	assert.Equal(t, 1,len(workers))
 	assert.Equal(t, cType, workers[0].ConceptType)
