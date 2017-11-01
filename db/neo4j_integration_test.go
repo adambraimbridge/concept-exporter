@@ -17,6 +17,7 @@ import (
 	"github.com/Financial-Times/base-ft-rw-app-go/baseftrwapp"
 	"github.com/Financial-Times/financial-instruments-rw-neo4j/financialinstruments"
 	"github.com/Financial-Times/organisations-rw-neo4j/organisations"
+	"reflect"
 )
 
 const (
@@ -70,7 +71,7 @@ waitLoop:
 			assert.Equal(t, "ff691bf8-8d92-1a1a-8326-c273400bff0b", c.Uuid)
 			assert.Equal(t, "http://api.ft.com/brands/ff691bf8-8d92-1a1a-8326-c273400bff0b", c.ApiUrl)
 			assert.Equal(t, "Business School video", c.PrefLabel)
-			assert.Equal(t, []string{"Thing", "Concept", "Brand", "Classification"}, c.Labels)
+			assertListContainsAll(t, []string{"Thing", "Concept", "Brand", "Classification"}, c.Labels)
 			assert.Empty(t, c.LeiCode)
 			assert.Empty(t, c.FactsetId)
 			assert.Empty(t, c.FIGI)
@@ -105,7 +106,7 @@ waitLoop:
 			assert.Equal(t, "eac853f5-3859-4c08-8540-55e043719400", c.Uuid)
 			assert.Equal(t, "http://api.ft.com/organisations/eac853f5-3859-4c08-8540-55e043719400", c.ApiUrl)
 			assert.Equal(t, "Fakebook, Inc.", c.PrefLabel)
-			assert.Equal(t, []string{"Thing", "Concept", "Organisation", "PublicCompany", "Company"}, c.Labels)
+			assertListContainsAll(t, []string{"Thing", "Concept", "Organisation", "PublicCompany", "Company"}, c.Labels)
 			assert.Equal(t, "BQ4BKCS1HXDV9TTTTTTTT", c.LeiCode)
 			assert.Equal(t, "00AAA-E", c.FactsetId)
 			assert.Equal(t, "BB8000C3P0-R2D2", c.FIGI)
@@ -181,6 +182,20 @@ waitLoop:
 			t.FailNow()
 		case <-time.After(3 * time.Second):
 			t.FailNow()
+		}
+	}
+}
+
+func assertListContainsAll(t *testing.T, list interface{}, items ...interface{}) {
+	if reflect.TypeOf(items[0]).Kind().String() == "slice" {
+		expected := reflect.ValueOf(items[0])
+		expectedLength := expected.Len()
+		for i := 0; i < expectedLength; i++ {
+			assert.Contains(t, list, expected.Index(i).Interface())
+		}
+	} else {
+		for _, item := range items {
+			assert.Contains(t, list, item)
 		}
 	}
 }
