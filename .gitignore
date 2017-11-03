@@ -1,0 +1,6 @@
+*.iml
+.idea
+/concept-exporter*
+vendor/*/
+.project
+.vscode
