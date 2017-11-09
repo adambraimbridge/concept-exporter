@@ -1,10 +1,10 @@
 package db
 
 import (
-	"github.com/Financial-Times/neo-utils-go/neoutils"
-	"github.com/jmcvetta/neoism"
 	"fmt"
 	"github.com/Financial-Times/neo-model-utils-go/mapper"
+	"github.com/Financial-Times/neo-utils-go/neoutils"
+	"github.com/jmcvetta/neoism"
 )
 
 type Service interface {
@@ -26,9 +26,9 @@ type Concept struct {
 	PrefLabel string
 	ApiUrl    string
 	Labels    []string
-	LeiCode string
+	LeiCode   string
 	FactsetId string
-	FIGI string
+	FIGI      string
 }
 
 func (s *NeoService) Read(conceptType string, conceptCh chan Concept) (int, bool, error) {
@@ -37,7 +37,7 @@ func (s *NeoService) Read(conceptType string, conceptCh chan Concept) (int, bool
 			MATCH (c:%s)-[:MENTIONS|MAJOR_MENTIONS|ABOUT|IS_CLASSIFIED_BY|IS_PRIMARILY_CLASSIFIED_BY|HAS_AUTHOR]-(cc:Content)
 			MATCH (c)-[:EQUIVALENT_TO]->(x:Thing)
 			RETURN DISTINCT x.prefUUID AS Uuid, x.prefLabel AS PrefLabel, labels(c) AS Labels
-		`,conceptType)
+		`, conceptType)
 
 	if conceptType == "Organisation" {
 		stmt = `
@@ -60,8 +60,8 @@ func (s *NeoService) Read(conceptType string, conceptCh chan Concept) (int, bool
 	}
 
 	query := &neoism.CypherQuery{
-		Statement:    stmt,
-		Result:       &results,
+		Statement: stmt,
+		Result:    &results,
 	}
 
 	err := s.Connection.CypherBatch([]*neoism.CypherQuery{query})

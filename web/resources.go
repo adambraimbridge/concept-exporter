@@ -13,7 +13,7 @@ import (
 )
 
 type RequestHandler struct {
-	Exporter *export.Service
+	Exporter     *export.Service
 	ConceptTypes []string
 }
 

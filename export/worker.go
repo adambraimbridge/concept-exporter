@@ -1,24 +1,24 @@
 package export
 
 import (
+	"fmt"
 	"github.com/Financial-Times/concept-exporter/concept"
-	"sync"
 	"github.com/pborman/uuid"
 	log "github.com/sirupsen/logrus"
-	"fmt"
+	"sync"
 )
 
 type Job struct {
 	sync.RWMutex
 	wg           sync.WaitGroup
-	NrWorker     int                `json:"-"`
+	NrWorker     int               `json:"-"`
 	Workers      []*concept.Worker `json:"ConceptWorkers,omitempty"`
-	ID           string             `json:"ID"`
-	Concepts     []string            `json:"Concepts,omitempty"`
-	Progress     []string                `json:"Progress,omitempty"`
-	Failed       []string           `json:"Failed,omitempty"`
-	Status       concept.State              `json:"Status"`
-	ErrorMessage string             `json:"ErrorMessage,omitempty"`
+	ID           string            `json:"ID"`
+	Concepts     []string          `json:"Concepts,omitempty"`
+	Progress     []string          `json:"Progress,omitempty"`
+	Failed       []string          `json:"Failed,omitempty"`
+	Status       concept.State     `json:"Status"`
+	ErrorMessage string            `json:"ErrorMessage,omitempty"`
 }
 
 type Service struct {
@@ -82,7 +82,7 @@ func (fe *Service) getJob() Job {
 func (fe *Service) CreateJob(candidates []string, errMsg string) Job {
 	fe.Lock()
 	defer fe.Unlock()
-	fe.job = &Job{ID: "job_" + uuid.New(), NrWorker: fe.NrOfConcurrentWorkers, Status: concept.STARTING, Concepts: candidates, ErrorMessage: errMsg, }
+	fe.job = &Job{ID: "job_" + uuid.New(), NrWorker: fe.NrOfConcurrentWorkers, Status: concept.STARTING, Concepts: candidates, ErrorMessage: errMsg}
 	return fe.getJob()
 }
 

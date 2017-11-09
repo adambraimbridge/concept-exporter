@@ -2,13 +2,13 @@ package concept
 
 import (
 	"errors"
+	"github.com/gorilla/mux"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"github.com/gorilla/mux"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 )
 
 type mockHttpClient struct {
@@ -66,12 +66,12 @@ func TestS3UpdaterUploadConcept(t *testing.T) {
 	testConcept := "Brand"
 
 	mockServer := new(mockS3WriterServer)
-	mockServer.On("UploadRequest", testConcept + ".csv", "tid_1234", "application/json").Return(200)
+	mockServer.On("UploadRequest", testConcept+".csv", "tid_1234", "application/json").Return(200)
 	server := mockServer.startMockS3WriterServer(t)
 
 	updater := NewS3Updater(server.URL)
 
-	err := updater.Upload([]byte("test"), testConcept + ".csv", "tid_1234")
+	err := updater.Upload([]byte("test"), testConcept+".csv", "tid_1234")
 	assert.NoError(t, err)
 	mockServer.AssertExpectations(t)
 }
@@ -80,12 +80,12 @@ func TestS3UpdaterUploadContentErrorResponse(t *testing.T) {
 	testConcept := "Brand"
 
 	mockServer := new(mockS3WriterServer)
-	mockServer.On("UploadRequest", testConcept + ".csv", "tid_1234", "application/json").Return(503)
+	mockServer.On("UploadRequest", testConcept+".csv", "tid_1234", "application/json").Return(503)
 	server := mockServer.startMockS3WriterServer(t)
 
 	updater := NewS3Updater(server.URL)
 
-	err := updater.Upload([]byte("test"), testConcept + ".csv", "tid_1234")
+	err := updater.Upload([]byte("test"), testConcept+".csv", "tid_1234")
 	assert.Error(t, err)
 	assert.Equal(t, "UPP Export RW S3 returned HTTP 503", err.Error())
 	mockServer.AssertExpectations(t)

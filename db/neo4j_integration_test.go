@@ -1,23 +1,23 @@
 package db
 
 import (
-	"github.com/stretchr/testify/assert"
-	"github.com/Financial-Times/neo-utils-go/neoutils"
-	"testing"
-	"os"
-	"github.com/Financial-Times/concepts-rw-neo4j/concepts"
-	"github.com/stretchr/testify/require"
 	"encoding/json"
-	"time"
-	"github.com/jmcvetta/neoism"
-	"github.com/Financial-Times/content-rw-neo4j/content"
 	"fmt"
 	"github.com/Financial-Times/annotations-rw-neo4j/annotations"
-	"github.com/Financial-Times/go-logger"
 	"github.com/Financial-Times/base-ft-rw-app-go/baseftrwapp"
+	"github.com/Financial-Times/concepts-rw-neo4j/concepts"
+	"github.com/Financial-Times/content-rw-neo4j/content"
 	"github.com/Financial-Times/financial-instruments-rw-neo4j/financialinstruments"
+	"github.com/Financial-Times/go-logger"
+	"github.com/Financial-Times/neo-utils-go/neoutils"
 	"github.com/Financial-Times/organisations-rw-neo4j/organisations"
+	"github.com/jmcvetta/neoism"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"os"
 	"reflect"
+	"testing"
+	"time"
 )
 
 const (

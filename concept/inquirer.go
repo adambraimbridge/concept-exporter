@@ -17,13 +17,13 @@ const (
 
 type Worker struct {
 	sync.RWMutex
-	ConceptCh   chan db.Concept `json:"-"`
-	Errch       chan error      `json:"-"`
-	ConceptType string          `json:"ConceptType,omitempty"`
-	Count int                   `json:"Count,omitempty"`
-	Progress int                `json:"Progress,omitempty"`
-	Status   State              `json:"Status,omitempty"`
-	ErrorMessage string         `json:"ErrorMessage,omitempty"`
+	ConceptCh    chan db.Concept `json:"-"`
+	Errch        chan error      `json:"-"`
+	ConceptType  string          `json:"ConceptType,omitempty"`
+	Count        int             `json:"Count,omitempty"`
+	Progress     int             `json:"Progress,omitempty"`
+	Status       State           `json:"Status,omitempty"`
+	ErrorMessage string          `json:"ErrorMessage,omitempty"`
 }
 
 func (w *Worker) setCount(count int) {
@@ -47,7 +47,7 @@ type NeoInquirer struct {
 }
 
 func NewNeoInquirer(neo db.Service) *NeoInquirer {
-	return &NeoInquirer{Neo:neo}
+	return &NeoInquirer{Neo: neo}
 }
 
 func (n *NeoInquirer) Inquire(candidates []string, tid string) []*Worker {

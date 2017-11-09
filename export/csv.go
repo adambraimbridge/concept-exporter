@@ -53,7 +53,7 @@ func (e *CsvExporter) Write(c db.Concept, conceptType, tid string) error {
 }
 
 func (e *CsvExporter) GetFileName(conceptType string) string {
-	return conceptType  + ".csv"
+	return conceptType + ".csv"
 }
 
 func getHeader(conceptType string) []string {
