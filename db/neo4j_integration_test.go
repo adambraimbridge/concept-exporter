@@ -57,7 +57,7 @@ func TestNeoService_ReadBrand(t *testing.T) {
 	writeBrands(t, conn)
 	writeContent(t, conn)
 	writeAnnotation(t, conn, fmt.Sprintf("./fixtures/Annotations-%s.json", contentUUID), "v1")
-	neoSvc := NewNeoService(conn)
+	neoSvc := NewNeoService(conn, "not-needed")
 
 	conceptCh := make(chan Concept)
 	count, found, err := neoSvc.Read("Brand", conceptCh)
@@ -93,7 +93,7 @@ func TestNeoService_ReadOrganisation(t *testing.T) {
 	writeFinancialInstruments(t, conn)
 	writeContent(t, conn)
 	writeAnnotation(t, conn, fmt.Sprintf("./fixtures/Annotations-%s-org.json", contentUUID), "v2")
-	neoSvc := NewNeoService(conn)
+	neoSvc := NewNeoService(conn, "not-needed")
 
 	conceptCh := make(chan Concept)
 	count, found, err := neoSvc.Read("Organisation", conceptCh)
@@ -125,7 +125,7 @@ waitLoop:
 func TestNeoService_ReadWithoutResult(t *testing.T) {
 	conn := getDatabaseConnection(t)
 	cleanDB(t, conn)
-	neoSvc := NewNeoService(conn)
+	neoSvc := NewNeoService(conn, "not-needed")
 
 	conceptCh := make(chan Concept)
 	count, found, err := neoSvc.Read("Brand", conceptCh)
@@ -169,7 +169,7 @@ func (c interceptingCypherConn) EnsureIndexes(indexes map[string]string) error {
 
 func TestNeoService_ReadWithError(t *testing.T) {
 	conn := &interceptingCypherConn{db: getDatabaseConnection(t), shouldFail: true}
-	neoSvc := NewNeoService(conn)
+	neoSvc := NewNeoService(conn, "not-needed")
 
 	conceptCh := make(chan Concept)
 	count, found, err := neoSvc.Read("Brand", conceptCh)

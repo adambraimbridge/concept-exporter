@@ -101,7 +101,7 @@ func main() {
 		client.Concurrency = 1
 
 		uploader := &concept.S3Updater{Client: client, S3WriterBaseURL: *s3WriterBaseURL, S3WriterHealthURL: *s3WriterHealthURL}
-		neoService := db.NewNeoService(neoConn)
+		neoService := db.NewNeoService(neoConn, *neoURL)
 		fullExporter := export.NewFullExporter(30, uploader, concept.NewNeoInquirer(neoService),
 			export.NewCsvExporter())
 
@@ -112,7 +112,7 @@ func main() {
 					appName:       *appName,
 					port:          *port,
 					s3Uploader:    uploader,
-					NeoURL:        *neoURL,
+					neoService:    neoService,
 				})
 			serveEndpoints(*appSystemCode, *appName, *port, web.NewRequestHandler(fullExporter, *conceptTypes), healthService)
 		}()

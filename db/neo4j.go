@@ -7,18 +7,23 @@ import (
 	"github.com/jmcvetta/neoism"
 )
 
+//Service reads from a data source and uses a channel to iterate on the retrieved values for the given concept type
 type Service interface {
 	Read(conceptType string, conceptCh chan Concept) (int, bool, error)
 }
 
+//NeoService is the implementation of Service for Neo4j
 type NeoService struct {
 	Connection neoutils.NeoConnection
+	NeoURL     string
 }
 
-func NewNeoService(conn neoutils.NeoConnection) *NeoService {
-	return &NeoService{Connection: conn}
+//Returns a new NeoService
+func NewNeoService(conn neoutils.NeoConnection, neoURL string) *NeoService {
+	return &NeoService{Connection: conn, NeoURL: neoURL}
 }
 
+//Concept is the model for the data read from the data source
 type Concept struct {
 	Id        string
 	Uuid      string
@@ -84,8 +89,8 @@ func (s *NeoService) Read(conceptType string, conceptCh chan Concept) (int, bool
 	return len(results), true, nil
 }
 
-func (s *NeoService) CheckConnectivity() (string, error) {
-	err := neoutils.Check(s.Connection)
+func (s *NeoService) CheckConnectivity(conn neoutils.NeoConnection) (string, error) {
+	err := neoutils.Check(conn)
 	if err != nil {
 		return "Could not connect to Neo", err
 	}
