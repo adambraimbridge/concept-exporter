@@ -12,12 +12,11 @@ type Service interface {
 }
 
 type NeoService struct {
-	NeoURL     string
 	Connection neoutils.NeoConnection
 }
 
-func NewNeoService(conn neoutils.NeoConnection, neoURL string) *NeoService {
-	return &NeoService{Connection: conn, NeoURL: neoURL}
+func NewNeoService(conn neoutils.NeoConnection) *NeoService {
+	return &NeoService{Connection: conn}
 }
 
 type Concept struct {

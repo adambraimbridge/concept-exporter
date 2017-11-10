@@ -3,9 +3,11 @@ package main
 import (
 	"fmt"
 	"github.com/Financial-Times/concept-exporter/concept"
-	"github.com/Financial-Times/concept-exporter/db"
 	health "github.com/Financial-Times/go-fthealth/v1_1"
+	"github.com/Financial-Times/neo-utils-go/neoutils"
 	"github.com/Financial-Times/service-status-go/gtg"
+	log "github.com/sirupsen/logrus"
+	"time"
 )
 
 const healthPath = "/__health"
@@ -20,7 +22,7 @@ type healthConfig struct {
 	appName       string
 	port          string
 	s3Uploader    *concept.S3Updater
-	neoService    *db.NeoService
+	NeoURL        string
 }
 
 func newHealthService(config *healthConfig) *healthService {
@@ -33,13 +35,23 @@ func newHealthService(config *healthConfig) *healthService {
 }
 
 func (service *healthService) NeoCheck() health.Check {
+	conf := neoutils.DefaultConnectionConfig()
+	conf.HTTPClient.Timeout = 5 * time.Second
+	conn, err := neoutils.Connect(service.config.NeoURL, conf)
+	log.Infof("New connection for Neo for health check: %v, with error: %v", conn, err)
 	return health.Check{
 		Name:             "CheckConnectivityToNeo4j",
 		BusinessImpact:   "No Business Impact.",
 		PanicGuide:       "https://dewey.ft.com/concept-exporter.html",
 		Severity:         2,
-		TechnicalSummary: fmt.Sprintf("The service is unable to connect to Neo4j (%s). Export won't work because of this", service.config.neoService.NeoURL),
-		Checker:          service.config.neoService.CheckConnectivity,
+		TechnicalSummary: fmt.Sprintf("The service is unable to connect to Neo4j (%s). Export won't work because of this", service.config.NeoURL),
+		Checker: func() (string, error) {
+			err := neoutils.Check(conn)
+			if err != nil {
+				return "Could not connect to Neo", err
+			}
+			return "Neo could be reached", nil
+		},
 	}
 }
 
