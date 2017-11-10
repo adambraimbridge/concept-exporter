@@ -45,7 +45,7 @@ func (service *healthService) NeoCheck() health.Check {
 		BusinessImpact:   "No Business Impact.",
 		PanicGuide:       "https://dewey.ft.com/concept-exporter.html",
 		Severity:         2,
-		TechnicalSummary: fmt.Sprintf("The service is unable to connect to Neo4j (%s). Export won't work because of this", service.config.neoService),
+		TechnicalSummary: fmt.Sprintf("The service is unable to connect to Neo4j (%s). Export won't work because of this", service.config.neoService.NeoURL),
 		Checker: func() (string, error) {
 			if connErr != nil {
 				return "Could not make initial connection to Neo", connErr
