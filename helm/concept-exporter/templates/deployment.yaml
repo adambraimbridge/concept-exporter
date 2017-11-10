@@ -24,17 +24,11 @@ spec:
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         env:
         - name: MAX_GO_ROUTINES
-          value: {{ .Values.env.goroutines }}
+          value: "{{ .Values.env.goroutines }}"
         - name: S3_WRITER_BASE_URL
-          valueFrom:
-            configMapKeyRef:
-              name: global-config
-              key: upp.exports.rw.s3.url
+          value: "{{ .Values.env.s3Writer.baseUrl }}"
         - name: S3_WRITER_HEALTH_URL
-          valueFrom:
-            configMapKeyRef:
-              name: global-config
-              key: upp.exports.rw.s3.health.url
+          value: "{{ .Values.env.s3Writer.healthUrl }}"
         - name: NEO_URL
           valueFrom:
             configMapKeyRef:
