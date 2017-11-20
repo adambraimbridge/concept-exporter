@@ -59,13 +59,13 @@ func (service *healthService) S3WriterCheck() health.Check {
 	tr := &http.Transport{
 		MaxIdleConnsPerHost: 10,
 		Dial: (&net.Dialer{
-			Timeout:   5 * time.Second,
-			KeepAlive: 5 * time.Second,
+			Timeout:   3 * time.Second,
+			KeepAlive: 3 * time.Second,
 		}).Dial,
 	}
 	httpClient := &http.Client{
 		Transport: tr,
-		Timeout:   5 * time.Second,
+		Timeout:   3 * time.Second,
 	}
 	return health.Check{
 		Name:             "CheckConnectivityToExportRWS3",
