@@ -36,7 +36,7 @@ spec:
         - name: S3_WRITER_BASE_URL
           value: "{{ .Values.env.s3Writer.baseUrl }}"
         - name: S3_WRITER_HEALTH_URL
-          value: "{{ .Values.env.s3Writer.healthUrl }}"
+          value: "{{ .Values.env.s3Writer.baseUrl }}/__gtg"
         - name: NEO_URL
           valueFrom:
             configMapKeyRef:
