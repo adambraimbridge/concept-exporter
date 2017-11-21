@@ -33,8 +33,6 @@ spec:
         image: "{{ .Values.image.repository }}:{{ .Chart.Version }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         env:
-        - name: MAX_GO_ROUTINES
-          value: "{{ .Values.env.goroutines }}"
         - name: S3_WRITER_BASE_URL
           value: "{{ .Values.env.s3Writer.baseUrl }}"
         - name: S3_WRITER_HEALTH_URL
