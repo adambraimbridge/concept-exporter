@@ -78,7 +78,7 @@ func main() {
 	app.Action = func() {
 		log.WithField("event", "service_started").WithField("service_name", *appName).Info("Service started")
 		conf := neoutils.DefaultConnectionConfig()
-		conf.HTTPClient.Timeout = 5 * time.Minute
+		conf.HTTPClient.Timeout = 8 * time.Minute
 		neoConn, err := neoutils.Connect(*neoURL, conf)
 
 		if err != nil {
