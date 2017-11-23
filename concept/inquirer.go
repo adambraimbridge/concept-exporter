@@ -61,7 +61,7 @@ func (n *NeoInquirer) Inquire(candidates []string, tid string) []*Worker {
 		for _, worker := range workers {
 			count, found, err := n.Neo.Read(worker.ConceptType, worker.ConceptCh)
 			if err != nil {
-				log.WithField("transaction_id", tid).Errorf("Error by reading %v concept type from Neo: %v", worker.ConceptType, err)
+				log.WithField("transaction_id", tid).Errorf("Error by reading %v concept type from Neo: %+v", worker.ConceptType, err)
 				worker.Errch <- err
 				continue
 			}
