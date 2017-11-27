@@ -133,7 +133,7 @@ func serveEndpoints(appSystemCode string, appName string, port string, requestHa
 
 	hc := health.HealthCheck{SystemCode: appSystemCode, Name: appName, Description: appDescription, Checks: healthService.checks}
 	serveMux.HandleFunc(healthPath, health.Handler(hc))
-	serveMux.HandleFunc(status.GTGPath, status.NewGoodToGoHandler(healthService.gtgCheck))
+	serveMux.HandleFunc(status.GTGPath, status.NewGoodToGoHandler(healthService.GTG))
 	serveMux.HandleFunc(status.BuildInfoPath, status.BuildInfoHandler)
 
 	servicesRouter := mux.NewRouter()

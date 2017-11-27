@@ -79,11 +79,23 @@ func (service *healthService) S3WriterCheck() health.Check {
 	}
 }
 
-func (service *healthService) gtgCheck() gtg.Status {
-	for _, check := range service.checks {
-		if _, err := check.Checker(); err != nil {
-			return gtg.Status{GoodToGo: false, Message: err.Error()}
-		}
+func (service *healthService) GTG() gtg.Status {
+	s3WriterCheck := func() gtg.Status {
+		return service.gtgCheck(service.S3WriterCheck())
 	}
-	return gtg.Status{GoodToGo: true}
+	neoCheck := func() gtg.Status {
+		return service.gtgCheck(service.NeoCheck())
+	}
+
+	return gtg.FailFastParallelCheck([]gtg.StatusChecker{
+		s3WriterCheck,
+		neoCheck,
+	})()
+}
+
+func (service *healthService) gtgCheck(check health.Check) gtg.Status {
+	if _, err := check.Checker(); err != nil {
+		return gtg.Status{GoodToGo: false, Message: err.Error()}
+	}
+	return gtg.Status{GoodToGo: true, }
 }
