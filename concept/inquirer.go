@@ -2,9 +2,10 @@ package concept
 
 import (
 	"fmt"
+	"sync"
+
 	"github.com/Financial-Times/concept-exporter/db"
 	log "github.com/sirupsen/logrus"
-	"sync"
 )
 
 type State string

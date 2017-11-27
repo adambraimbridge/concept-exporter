@@ -2,10 +2,11 @@ package export
 
 import (
 	"fmt"
+	"sync"
+
 	"github.com/Financial-Times/concept-exporter/concept"
 	"github.com/pborman/uuid"
 	log "github.com/sirupsen/logrus"
-	"sync"
 )
 
 type Job struct {

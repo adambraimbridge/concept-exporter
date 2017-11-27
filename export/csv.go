@@ -3,6 +3,7 @@ package export
 import (
 	"bytes"
 	"encoding/csv"
+
 	"github.com/Financial-Times/concept-exporter/db"
 )
 

@@ -3,6 +3,11 @@ package db
 import (
 	"encoding/json"
 	"fmt"
+	"os"
+	"reflect"
+	"testing"
+	"time"
+
 	"github.com/Financial-Times/annotations-rw-neo4j/annotations"
 	"github.com/Financial-Times/base-ft-rw-app-go/baseftrwapp"
 	"github.com/Financial-Times/concepts-rw-neo4j/concepts"
@@ -14,10 +19,6 @@ import (
 	"github.com/jmcvetta/neoism"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"os"
-	"reflect"
-	"testing"
-	"time"
 )
 
 const (

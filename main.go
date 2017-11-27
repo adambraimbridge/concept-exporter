@@ -1,13 +1,17 @@
 package main
 
 import (
-	"github.com/jawher/mow.cli"
-	log "github.com/sirupsen/logrus"
 	"net/http"
 	"os"
 	"os/signal"
 	"sync"
 	"syscall"
+
+	"github.com/jawher/mow.cli"
+	log "github.com/sirupsen/logrus"
+
+	"net"
+	"time"
 
 	"github.com/Financial-Times/concept-exporter/concept"
 	"github.com/Financial-Times/concept-exporter/db"
@@ -20,8 +24,6 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/rcrowley/go-metrics"
 	"github.com/sethgrid/pester"
-	"net"
-	"time"
 )
 
 const appDescription = "Exports concept from a data source (Neo4j) and sends it to S3"

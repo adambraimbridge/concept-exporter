@@ -2,6 +2,7 @@ package db
 
 import (
 	"fmt"
+
 	"github.com/Financial-Times/neo-model-utils-go/mapper"
 	"github.com/Financial-Times/neo-utils-go/neoutils"
 	"github.com/jmcvetta/neoism"

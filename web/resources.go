@@ -4,12 +4,13 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/Financial-Times/concept-exporter/export"
-	"github.com/Financial-Times/transactionid-utils-go"
-	log "github.com/sirupsen/logrus"
 	"io/ioutil"
 	"net/http"
 	"strings"
+
+	"github.com/Financial-Times/concept-exporter/export"
+	"github.com/Financial-Times/transactionid-utils-go"
+	log "github.com/sirupsen/logrus"
 )
 
 type RequestHandler struct {
