@@ -38,10 +38,7 @@ spec:
         - name: S3_WRITER_HEALTH_URL
           value: "{{ .Values.env.s3Writer.baseUrl }}/__gtg"
         - name: NEO_URL
-          valueFrom:
-            configMapKeyRef:
-              name: global-config
-              key: neo4j.read.only.url
+          value: "http://upp-semantic-data-read-alb-up.ft.com:7474/db/data/"
         ports:
         - containerPort: 8080
         livenessProbe:
