@@ -1,13 +1,17 @@
 package main
 
 import (
-	"github.com/jawher/mow.cli"
-	log "github.com/sirupsen/logrus"
 	"net/http"
 	"os"
 	"os/signal"
 	"sync"
 	"syscall"
+
+	"github.com/jawher/mow.cli"
+	log "github.com/sirupsen/logrus"
+
+	"net"
+	"time"
 
 	"github.com/Financial-Times/concept-exporter/concept"
 	"github.com/Financial-Times/concept-exporter/db"
@@ -20,8 +24,6 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/rcrowley/go-metrics"
 	"github.com/sethgrid/pester"
-	"net"
-	"time"
 )
 
 const appDescription = "Exports concept from a data source (Neo4j) and sends it to S3"
@@ -78,7 +80,7 @@ func main() {
 	app.Action = func() {
 		log.WithField("event", "service_started").WithField("service_name", *appName).Info("Service started")
 		conf := neoutils.DefaultConnectionConfig()
-		conf.HTTPClient.Timeout = 5 * time.Minute
+		conf.HTTPClient.Timeout = 10 * time.Minute
 		neoConn, err := neoutils.Connect(*neoURL, conf)
 
 		if err != nil {
@@ -133,7 +135,7 @@ func serveEndpoints(appSystemCode string, appName string, port string, requestHa
 
 	hc := health.HealthCheck{SystemCode: appSystemCode, Name: appName, Description: appDescription, Checks: healthService.checks}
 	serveMux.HandleFunc(healthPath, health.Handler(hc))
-	serveMux.HandleFunc(status.GTGPath, status.NewGoodToGoHandler(healthService.gtgCheck))
+	serveMux.HandleFunc(status.GTGPath, status.NewGoodToGoHandler(healthService.GTG))
 	serveMux.HandleFunc(status.BuildInfoPath, status.BuildInfoHandler)
 
 	servicesRouter := mux.NewRouter()

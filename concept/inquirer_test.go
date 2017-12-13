@@ -1,13 +1,14 @@
 package concept
 
 import (
-	"testing"
-	"github.com/stretchr/testify/mock"
-	"github.com/Financial-Times/concept-exporter/db"
-	"github.com/stretchr/testify/assert"
-	"time"
-	"github.com/pkg/errors"
 	"fmt"
+	"testing"
+	"time"
+
+	"github.com/Financial-Times/concept-exporter/db"
+	"github.com/pkg/errors"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 type mockDbService struct {
@@ -30,10 +31,10 @@ func TestNeoInquirer_InquireSuccessfully(t *testing.T) {
 
 	time.Sleep(500 * time.Millisecond)
 
-	assert.Equal(t, 1,len(workers))
+	assert.Equal(t, 1, len(workers))
 	assert.Equal(t, cType, workers[0].ConceptType)
-	assert.Equal(t, 2 ,workers[0].GetCount())
-	assert.Equal(t, STARTING ,workers[0].Status)
+	assert.Equal(t, 2, workers[0].GetCount())
+	assert.Equal(t, STARTING, workers[0].Status)
 	assert.Equal(t, 0, len(workers[0].Errch))
 	mockDb.AssertExpectations(t)
 }
@@ -49,10 +50,10 @@ func TestNeoInquirer_InquireSuccessfullyWithEmptyResult(t *testing.T) {
 
 	time.Sleep(500 * time.Millisecond)
 
-	assert.Equal(t, 1,len(workers))
+	assert.Equal(t, 1, len(workers))
 	assert.Equal(t, cType, workers[0].ConceptType)
-	assert.Equal(t, 0 ,workers[0].GetCount())
-	assert.Equal(t, STARTING ,workers[0].Status)
+	assert.Equal(t, 0, workers[0].GetCount())
+	assert.Equal(t, STARTING, workers[0].Status)
 	assert.Equal(t, 1, len(workers[0].Errch))
 	assert.Equal(t, fmt.Sprintf("Reading %v concept type from Neo returned empty result", cType), (<-workers[0].Errch).Error())
 	mockDb.AssertExpectations(t)
@@ -69,10 +70,10 @@ func TestNeoInquirer_InquireWithError(t *testing.T) {
 
 	time.Sleep(500 * time.Millisecond)
 
-	assert.Equal(t, 1,len(workers))
+	assert.Equal(t, 1, len(workers))
 	assert.Equal(t, cType, workers[0].ConceptType)
-	assert.Equal(t, 0 ,workers[0].GetCount())
-	assert.Equal(t, STARTING ,workers[0].Status)
+	assert.Equal(t, 0, workers[0].GetCount())
+	assert.Equal(t, STARTING, workers[0].Status)
 	assert.Equal(t, 1, len(workers[0].Errch))
 	assert.Equal(t, "Neo err", (<-workers[0].Errch).Error())
 	mockDb.AssertExpectations(t)

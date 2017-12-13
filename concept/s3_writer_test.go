@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -66,12 +67,12 @@ func TestS3UpdaterUploadConcept(t *testing.T) {
 	testConcept := "Brand"
 
 	mockServer := new(mockS3WriterServer)
-	mockServer.On("UploadRequest", testConcept + ".csv", "tid_1234", "application/json").Return(200)
+	mockServer.On("UploadRequest", testConcept+".csv", "tid_1234", "application/json").Return(200)
 	server := mockServer.startMockS3WriterServer(t)
 
 	updater := NewS3Updater(server.URL)
 
-	err := updater.Upload([]byte("test"), testConcept + ".csv", "tid_1234")
+	err := updater.Upload([]byte("test"), testConcept+".csv", "tid_1234")
 	assert.NoError(t, err)
 	mockServer.AssertExpectations(t)
 }
@@ -80,12 +81,12 @@ func TestS3UpdaterUploadContentErrorResponse(t *testing.T) {
 	testConcept := "Brand"
 
 	mockServer := new(mockS3WriterServer)
-	mockServer.On("UploadRequest", testConcept + ".csv", "tid_1234", "application/json").Return(503)
+	mockServer.On("UploadRequest", testConcept+".csv", "tid_1234", "application/json").Return(503)
 	server := mockServer.startMockS3WriterServer(t)
 
 	updater := NewS3Updater(server.URL)
 
-	err := updater.Upload([]byte("test"), testConcept + ".csv", "tid_1234")
+	err := updater.Upload([]byte("test"), testConcept+".csv", "tid_1234")
 	assert.Error(t, err)
 	assert.Equal(t, "UPP Export RW S3 returned HTTP 503", err.Error())
 	mockServer.AssertExpectations(t)
@@ -120,7 +121,7 @@ func TestS3UpdaterCheckHealth(t *testing.T) {
 
 	updater := NewS3Updater(server.URL)
 
-	resp, err := updater.(*S3Updater).CheckHealth()
+	resp, err := updater.(*S3Updater).CheckHealth(&http.Client{})
 	assert.NoError(t, err)
 	assert.Equal(t, "S3 Writer is good to go.", resp)
 	mockServer.AssertExpectations(t)
@@ -133,18 +134,18 @@ func TestS3UpdaterCheckHealthError(t *testing.T) {
 
 	updater := NewS3Updater(server.URL)
 
-	resp, err := updater.(*S3Updater).CheckHealth()
+	resp, err := updater.(*S3Updater).CheckHealth(&http.Client{})
 	assert.Error(t, err)
 	assert.Equal(t, "S3 Writer is not good to go.", resp)
 	mockServer.AssertExpectations(t)
 }
 
 func TestS3UpdaterCheckHealthErrorOnNewRequest(t *testing.T) {
-	updater := &S3Updater{Client: &http.Client{},
+	updater := &S3Updater{
 		S3WriterHealthURL: "://",
 	}
 
-	resp, err := updater.CheckHealth()
+	resp, err := updater.CheckHealth(&http.Client{})
 	assert.Error(t, err)
 	assert.Equal(t, "parse ://: missing protocol scheme", err.Error())
 	assert.Equal(t, "Error in building request to check if the S3 Writer is good to go", resp)
@@ -154,12 +155,12 @@ func TestS3UpdaterCheckHealthErrorOnRequestDo(t *testing.T) {
 	mockClient := new(mockHttpClient)
 	mockClient.On("Do", mock.AnythingOfType("*http.Request")).Return(&http.Response{}, errors.New("Http Client err"))
 
-	updater := &S3Updater{Client: mockClient,
+	updater := &S3Updater{
 		S3WriterBaseURL:   "http://server",
 		S3WriterHealthURL: "http://server",
 	}
 
-	resp, err := updater.CheckHealth()
+	resp, err := updater.CheckHealth(mockClient)
 	assert.Error(t, err)
 	assert.Equal(t, "Http Client err", err.Error())
 	assert.Equal(t, "Error in getting request to check if S3 Writer is good to go.", resp)

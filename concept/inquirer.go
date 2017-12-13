@@ -2,9 +2,10 @@ package concept
 
 import (
 	"fmt"
+	"sync"
+
 	"github.com/Financial-Times/concept-exporter/db"
 	log "github.com/sirupsen/logrus"
-	"sync"
 )
 
 type State string
@@ -17,13 +18,13 @@ const (
 
 type Worker struct {
 	sync.RWMutex
-	ConceptCh   chan db.Concept `json:"-"`
-	Errch       chan error      `json:"-"`
-	ConceptType string          `json:"ConceptType,omitempty"`
-	Count int                   `json:"Count,omitempty"`
-	Progress int                `json:"Progress,omitempty"`
-	Status   State              `json:"Status,omitempty"`
-	ErrorMessage string         `json:"ErrorMessage,omitempty"`
+	ConceptCh    chan db.Concept `json:"-"`
+	Errch        chan error      `json:"-"`
+	ConceptType  string          `json:"ConceptType,omitempty"`
+	Count        int             `json:"Count,omitempty"`
+	Progress     int             `json:"Progress,omitempty"`
+	Status       State           `json:"Status,omitempty"`
+	ErrorMessage string          `json:"ErrorMessage,omitempty"`
 }
 
 func (w *Worker) setCount(count int) {
@@ -47,7 +48,7 @@ type NeoInquirer struct {
 }
 
 func NewNeoInquirer(neo db.Service) *NeoInquirer {
-	return &NeoInquirer{Neo:neo}
+	return &NeoInquirer{Neo: neo}
 }
 
 func (n *NeoInquirer) Inquire(candidates []string, tid string) []*Worker {
@@ -61,7 +62,7 @@ func (n *NeoInquirer) Inquire(candidates []string, tid string) []*Worker {
 		for _, worker := range workers {
 			count, found, err := n.Neo.Read(worker.ConceptType, worker.ConceptCh)
 			if err != nil {
-				log.WithField("transaction_id", tid).Errorf("Error by reading %v concept type from Neo: %v", worker.ConceptType, err)
+				log.WithField("transaction_id", tid).Errorf("Error by reading %v concept type from Neo: %+v", worker.ConceptType, err)
 				worker.Errch <- err
 				continue
 			}

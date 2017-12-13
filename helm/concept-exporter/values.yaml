@@ -4,13 +4,17 @@
 service:
   name: "" # The name of the service, should be defined in the specific app-configs folder.
   hasHealthcheck: "true"
-replicaCount: 2
+replicaCount: 1
 image:
   repository: coco/concept-exporter
   version: "" # should be set explicitly at installation
   pullPolicy: IfNotPresent
 resources:
+  requests:
+    memory: 300Mi
   limits:
-    memory: 256Mi
+    memory: 512Mi
 env:
-  ENV_VAR_1: "default value"
+  goroutines: "100"
+  s3Writer:
+    baseUrl: "http://upp-exports-rw-s3:8080"

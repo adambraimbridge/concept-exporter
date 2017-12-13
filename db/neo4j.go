@@ -1,34 +1,39 @@
 package db
 
 import (
+	"fmt"
+
+	"github.com/Financial-Times/neo-model-utils-go/mapper"
 	"github.com/Financial-Times/neo-utils-go/neoutils"
 	"github.com/jmcvetta/neoism"
-	"fmt"
-	"github.com/Financial-Times/neo-model-utils-go/mapper"
 )
 
+//Service reads from a data source and uses a channel to iterate on the retrieved values for the given concept type
 type Service interface {
 	Read(conceptType string, conceptCh chan Concept) (int, bool, error)
 }
 
+//NeoService is the implementation of Service for Neo4j
 type NeoService struct {
-	NeoURL     string
 	Connection neoutils.NeoConnection
+	NeoURL     string
 }
 
+//Returns a new NeoService
 func NewNeoService(conn neoutils.NeoConnection, neoURL string) *NeoService {
 	return &NeoService{Connection: conn, NeoURL: neoURL}
 }
 
+//Concept is the model for the data read from the data source
 type Concept struct {
 	Id        string
 	Uuid      string
 	PrefLabel string
 	ApiUrl    string
 	Labels    []string
-	LeiCode string
+	LeiCode   string
 	FactsetId string
-	FIGI string
+	FIGI      string
 }
 
 func (s *NeoService) Read(conceptType string, conceptCh chan Concept) (int, bool, error) {
@@ -37,7 +42,7 @@ func (s *NeoService) Read(conceptType string, conceptCh chan Concept) (int, bool
 			MATCH (c:%s)-[:MENTIONS|MAJOR_MENTIONS|ABOUT|IS_CLASSIFIED_BY|IS_PRIMARILY_CLASSIFIED_BY|HAS_AUTHOR]-(cc:Content)
 			MATCH (c)-[:EQUIVALENT_TO]->(x:Thing)
 			RETURN DISTINCT x.prefUUID AS Uuid, x.prefLabel AS PrefLabel, labels(c) AS Labels
-		`,conceptType)
+		`, conceptType)
 
 	if conceptType == "Organisation" {
 		stmt = `
@@ -60,8 +65,8 @@ func (s *NeoService) Read(conceptType string, conceptCh chan Concept) (int, bool
 	}
 
 	query := &neoism.CypherQuery{
-		Statement:    stmt,
-		Result:       &results,
+		Statement: stmt,
+		Result:    &results,
 	}
 
 	err := s.Connection.CypherBatch([]*neoism.CypherQuery{query})
@@ -85,8 +90,8 @@ func (s *NeoService) Read(conceptType string, conceptCh chan Concept) (int, bool
 	return len(results), true, nil
 }
 
-func (s *NeoService) CheckConnectivity() (string, error) {
-	err := neoutils.Check(s.Connection)
+func (s *NeoService) CheckConnectivity(conn neoutils.NeoConnection) (string, error) {
+	err := neoutils.Check(conn)
 	if err != nil {
 		return "Could not connect to Neo", err
 	}
