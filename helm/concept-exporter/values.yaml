@@ -11,9 +11,9 @@ image:
   pullPolicy: IfNotPresent
 resources:
   requests:
-    memory: 300Mi
+    memory: 500Mi
   limits:
-    memory: 512Mi
+    memory: 1Gi
 env:
   goroutines: "100"
   s3Writer:
