@@ -24,6 +24,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/rcrowley/go-metrics"
 	"github.com/sethgrid/pester"
+	"net/http/pprof"
 )
 
 const appDescription = "Exports concept from a data source (Neo4j) and sends it to S3"
@@ -139,6 +140,7 @@ func serveEndpoints(appSystemCode string, appName string, port string, requestHa
 	serveMux.HandleFunc(status.BuildInfoPath, status.BuildInfoHandler)
 
 	servicesRouter := mux.NewRouter()
+
 	servicesRouter.HandleFunc("/export", requestHandler.Export).Methods(http.MethodPost)
 	servicesRouter.HandleFunc("/job", requestHandler.GetJob).Methods(http.MethodGet)
 
@@ -147,7 +149,7 @@ func serveEndpoints(appSystemCode string, appName string, port string, requestHa
 	monitoringRouter = httphandlers.HTTPMetricsHandler(metrics.DefaultRegistry, monitoringRouter)
 
 	serveMux.Handle("/", monitoringRouter)
-
+	attachProfiler(serveMux)
 	server := &http.Server{
 		Addr:         ":" + port,
 		Handler:      serveMux,
@@ -180,4 +182,11 @@ func waitForSignal() {
 	ch := make(chan os.Signal)
 	signal.Notify(ch, syscall.SIGINT, syscall.SIGTERM)
 	<-ch
+}
+
+func attachProfiler(router *http.ServeMux) {
+	router.HandleFunc("/debug/pprof/", pprof.Index)
+	router.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
+	router.HandleFunc("/debug/pprof/profile", pprof.Profile)
+	router.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
 }
