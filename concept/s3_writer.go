@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"fmt"
 	"net/http"
+	"io/ioutil"
+	"io"
 )
 
 const s3WriterPath = "/concept/"
@@ -59,7 +61,10 @@ func (u *S3Updater) CheckHealth(client Client) (string, error) {
 	if err != nil {
 		return "Error in getting request to check if S3 Writer is good to go.", err
 	}
-	defer resp.Body.Close()
+	defer func() {
+		io.Copy(ioutil.Discard, resp.Body)
+		resp.Body.Close()
+	}()
 	if resp.StatusCode != http.StatusOK {
 		return "S3 Writer is not good to go.", fmt.Errorf("GTG HTTP status code is %v", resp.StatusCode)
 	}
