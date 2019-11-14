@@ -62,7 +62,7 @@ func (service *healthService) NeoCheck() health.Check {
 	return health.Check{
 		Name:             "CheckConnectivityToNeo4j",
 		BusinessImpact:   "No Business Impact.",
-		PanicGuide:       "https://dewey.ft.com/concept-exporter.html",
+		PanicGuide:       "https://runbooks.in.ft.com/concept-exporter",
 		Severity:         2,
 		TechnicalSummary: fmt.Sprintf("The service is unable to connect to Neo4j (%s). Export won't work because of this", service.config.neoService.NeoURL),
 		Checker: func() (string, error) {
@@ -78,7 +78,7 @@ func (service *healthService) S3WriterCheck() health.Check {
 	return health.Check{
 		Name:             "CheckConnectivityToExportRWS3",
 		BusinessImpact:   "No Business Impact.",
-		PanicGuide:       "https://dewey.ft.com/concept-exporter.html",
+		PanicGuide:       "https://runbooks.in.ft.com/concept-exporter",
 		Severity:         2,
 		TechnicalSummary: "The service is unable to connect to Export-RW-S3. Export won't work because of this",
 		Checker: func() (string, error) {
