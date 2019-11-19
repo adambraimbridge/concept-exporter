@@ -9,22 +9,13 @@ There are 2 types of exports:
 * A *FULL export* consists in inquiring all supported concepts from the DB
 * A *TARGETED export* is similar to the FULL export but triggering only for specific concept types
 
-## Installation
-      
-Download the source code, dependencies and test dependencies:
-
-        go get -u github.com/kardianos/govendor
-        go get -u github.com/Financial-Times/concept-exporter
-        cd $GOPATH/src/github.com/Financial-Times/concept-exporter
-        govendor sync
-        go build .
-
 ## Running locally
 
 1. Run the tests and install the binary:
 
-        govendor sync
-        govendor test -v -race
+        go get github.com/Financial-Times/concept-exporter
+        cd $GOPATH/src/github.com/Financial-Times/concept-exporter
+        go test ./... -race
         go install
 
 2. Run the binary (using the `help` flag to see the available optional arguments):
@@ -38,15 +29,12 @@ Options:
         Exports concept from a data source (Neo4j) and sends it to S3
 
         Options:
-          --app-system-code="concept-exporter"                                      System Code of the application ($APP_SYSTEM_
-        CODE)
+          --app-system-code="concept-exporter"                                      System Code of the application ($APP_SYSTEM_CODE)
           --app-name="concept-exporter"                                             Application name ($APP_NAME)
-          --port="9090"                                                             Port to listen on ($APP_PORT)
+          --port="8080"                                                             Port to listen on ($APP_PORT)
           --neo-url="http://localhost:7474/db/data"                                 neo4j endpoint URL ($NEO_URL)
-          --s3WriterBaseURL="http://localhost:8080"                                 Base URL to S3 writer endpoint ($S3_WRITER_B
-        ASE_URL)
-          --s3WriterHealthURL="http://localhost:8080/__gtg"                         Health URL to S3 writer endpoint ($S3_WRITER
-        _HEALTH_URL)
+          --s3WriterBaseURL="http://localhost:8080"                                 Base URL to S3 writer endpoint ($S3_WRITER_BASE_URL)
+          --s3WriterHealthURL="http://localhost:8080/__gtg"                         Health URL to S3 writer endpoint ($S3_WRITER_HEALTH_URL)
           --conceptTypes=["Brand", "Topic", "Location", "Person", "Organisation"]   Concept types to support ($CONCEPT_TYPES)
 
 3. Test:

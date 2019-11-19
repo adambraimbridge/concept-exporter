@@ -1,18 +1,18 @@
 version: 2
 jobs:
   build:
-    working_directory: /go/src/github.com/Financial-Times/concept-exporter
+    working_directory: /concept-exporter
     docker:
       - image: golang:1
         environment:
-          GOPATH: /go
           CIRCLE_TEST_REPORTS: /tmp/test-results
           CIRCLE_COVERAGE_REPORT: /tmp/coverage-results
-      - image: neo4j:3.2.2-enterprise
+      - image: neo4j:3.4.10-enterprise
         environment:
           NEO4J_AUTH: none
           NEO4J_HEAP_MEMORY: 256
           NEO4J_CACHE_MEMORY: 256M
+          NEO4J_ACCEPT_LICENSE_AGREEMENT: "yes"
     environment:
       NEO4J_TEST_URL: "http://localhost:7474/db/data/"
     steps:
@@ -20,31 +20,29 @@ jobs:
       - run:
           name: External Dependencies
           command: |
-            go get -u github.com/mattn/goveralls
-            go get -u github.com/jstemmer/go-junit-report
-            go get -u github.com/kardianos/govendor
-            go get -u github.com/haya14busa/goverage
+            GO111MODULE=off go get github.com/mattn/goveralls
+            GO111MODULE=off go get github.com/jstemmer/go-junit-report
+            curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.18.0
+            wget https://raw.githubusercontent.com/Financial-Times/upp-coding-standard/v1.0.0/golangci-config/.golangci.yml
       - run:
           name: Test Results
           command: |
             mkdir -p ${CIRCLE_TEST_REPORTS}
             mkdir -p ${CIRCLE_COVERAGE_REPORT}
       - run:
-          name: Govendor Sync
-          command: govendor sync -v
-      - run:
           name: Go Build
-          command: go build -v
+          command: go build -mod=readonly -v
+      - run:
+          name: Run linters
+          command: golangci-lint run --config=.golangci.yml --new-from-rev=master --build-tags=integration
       - run:
           wget --retry-connrefused --no-check-certificate -T 60 $NEO4J_TEST_URL; curl $NEO4J_TEST_URL
       - run:
-          name: Run Tests
-          command: |
-            govendor test -race -v +local | /go/bin/go-junit-report > ${CIRCLE_TEST_REPORTS}/main.xml
-            goverage -covermode=atomic -race -coverprofile=${CIRCLE_COVERAGE_REPORT}/coverage.out ./...
+          name: Run tests and create coverage report
+          command: go test -mod=readonly -race -cover -coverprofile=${CIRCLE_COVERAGE_REPORT}/coverage.out ./... | go-junit-report > ${CIRCLE_TEST_REPORTS}/junit.xml
       - run:
           name: Upload Coverage
-          command: /go/bin/goveralls -coverprofile=${CIRCLE_COVERAGE_REPORT}/coverage.out -service=circle-ci -repotoken=$COVERALLS_TOKEN
+          command: goveralls -coverprofile=${CIRCLE_COVERAGE_REPORT}/coverage.out -service=circle-ci -repotoken=${COVERALLS_TOKEN}
       - store_test_results:
           path: /tmp/test-results
   dockerfile:
