@@ -8,12 +8,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Financial-Times/annotations-rw-neo4j/annotations"
+	"github.com/Financial-Times/annotations-rw-neo4j/v3/annotations"
 	"github.com/Financial-Times/base-ft-rw-app-go/baseftrwapp"
 	"github.com/Financial-Times/concepts-rw-neo4j/concepts"
 	"github.com/Financial-Times/content-rw-neo4j/content"
 	"github.com/Financial-Times/financial-instruments-rw-neo4j/financialinstruments"
-	"github.com/Financial-Times/go-logger"
 	"github.com/Financial-Times/neo-utils-go/neoutils"
 	"github.com/Financial-Times/organisations-rw-neo4j/organisations"
 	"github.com/jmcvetta/neoism"
@@ -31,10 +30,6 @@ const (
 )
 
 var allUUIDs = []string{contentUUID, brandParentUUID, brandChildUUID, brandGrandChildUUID, FakebookConceptUUID, financialInstrumentUUID}
-
-func init() {
-	logger.InitLogger("concept-exporter", "ERROR")
-}
 
 func getDatabaseConnection(t *testing.T) neoutils.NeoConnection {
 	if testing.Short() {
@@ -270,7 +265,6 @@ func writeJSONToAnnotationService(t *testing.T, service annotations.Service, pat
 	inst, err := service.DecodeJSON(dec)
 	require.NoError(t, err)
 	require.NoError(t, service.Write(uuid, fmt.Sprintf("annotations-%s", platform), platform, "trans_id", inst))
-
 }
 
 //DELETES ALL DATA! DO NOT USE IN PRODUCTION!!!

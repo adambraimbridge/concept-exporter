@@ -39,7 +39,7 @@ type Concept struct {
 func (s *NeoService) Read(conceptType string, conceptCh chan Concept) (int, bool, error) {
 	results := []Concept{}
 	stmt := fmt.Sprintf(`
-			MATCH (c:%s)-[:MENTIONS|MAJOR_MENTIONS|ABOUT|IS_CLASSIFIED_BY|IS_PRIMARILY_CLASSIFIED_BY|HAS_AUTHOR]-(cc:Content)
+			MATCH (c:%s)-[:MENTIONS|MAJOR_MENTIONS|ABOUT|IS_CLASSIFIED_BY|IS_PRIMARILY_CLASSIFIED_BY|HAS_AUTHOR|HAS_BRAND]-(cc:Content)
 			MATCH (c)-[:EQUIVALENT_TO]->(x:Thing)
 			RETURN DISTINCT x.prefUUID AS Uuid, x.prefLabel AS PrefLabel, labels(c) AS Labels
 		`, conceptType)

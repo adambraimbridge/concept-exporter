@@ -6,7 +6,7 @@
       "types": [
         "http://www.ft.com/ontology/person/Brand"
       ],
-      "predicate": "isClassifiedBy"
+      "predicate": "hasBrand"
     },
     "provenances": [
       {

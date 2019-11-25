@@ -6,12 +6,16 @@ import (
 	"os/signal"
 	"sync"
 	"syscall"
+	"fmt"
 
-	"github.com/jawher/mow.cli"
+	cli "github.com/jawher/mow.cli"
 	log "github.com/sirupsen/logrus"
+
 
 	"net"
 	"time"
+
+	"net/http/pprof"
 
 	"github.com/Financial-Times/concept-exporter/concept"
 	"github.com/Financial-Times/concept-exporter/db"
@@ -24,7 +28,6 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/rcrowley/go-metrics"
 	"github.com/sethgrid/pester"
-	"net/http/pprof"
 )
 
 const appDescription = "Exports concept from a data source (Neo4j) and sends it to S3"
@@ -85,7 +88,7 @@ func main() {
 		neoConn, err := neoutils.Connect(*neoURL, conf)
 
 		if err != nil {
-			log.Fatalf("Could not connect to neo4j, error=[%s]\n", err)
+			log.WithError(err).Fatal("can't connect to neo4j, error=[%s]\n", err)
 		}
 		tr := &http.Transport{
 			MaxIdleConnsPerHost: 128,
@@ -124,7 +127,7 @@ func main() {
 	}
 	err := app.Run(os.Args)
 	if err != nil {
-		log.Errorf("App could not start, error=[%s]\n", err)
+		fmt.Printf("app could not start, error=[%s]\n", err)
 		return
 	}
 }
