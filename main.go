@@ -6,11 +6,9 @@ import (
 	"os/signal"
 	"sync"
 	"syscall"
-	"fmt"
 
 	cli "github.com/jawher/mow.cli"
 	log "github.com/sirupsen/logrus"
-
 
 	"net"
 	"time"
@@ -88,7 +86,7 @@ func main() {
 		neoConn, err := neoutils.Connect(*neoURL, conf)
 
 		if err != nil {
-			log.WithError(err).Fatal("can't connect to neo4j, error=[%s]\n", err)
+			log.WithError(err).Fatalf("can't connect to neo4j, error=[%s]\n", err)
 		}
 		tr := &http.Transport{
 			MaxIdleConnsPerHost: 128,
@@ -127,7 +125,7 @@ func main() {
 	}
 	err := app.Run(os.Args)
 	if err != nil {
-		fmt.Printf("app could not start, error=[%s]\n", err)
+		log.Errorf("app could not start, error=[%s]\n", err)
 		return
 	}
 }
@@ -177,7 +175,6 @@ func serveEndpoints(appSystemCode string, appName string, port string, requestHa
 	if err := server.Close(); err != nil {
 		log.Errorf("Unable to stop http server: %v", err)
 	}
-
 	wg.Wait()
 }
 
