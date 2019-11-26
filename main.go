@@ -182,7 +182,7 @@ func serveEndpoints(appSystemCode string, appName string, port string, requestHa
 }
 
 func waitForSignal() {
-	ch := make(chan os.Signal)
+	ch := make(chan os.Signal, 1)
 	signal.Notify(ch, syscall.SIGINT, syscall.SIGTERM)
 	<-ch
 }
