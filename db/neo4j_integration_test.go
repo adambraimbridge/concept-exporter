@@ -80,6 +80,42 @@ waitLoop:
 	}
 }
 
+func TestNeoService_ReadHasBrand(t *testing.T) {
+	conn := getDatabaseConnection(t)
+	cleanDB(t, conn)
+	writeBrands(t, conn)
+	writeContent(t, conn)
+	writeAnnotation(t, conn, fmt.Sprintf("./fixtures/Annotations-%s-hasBrand.json", contentUUID), "v1")
+
+	neoSvc := NewNeoService(conn, "not-needed")
+
+	conceptCh := make(chan Concept)
+	count, found, err := neoSvc.Read("Brand", conceptCh)
+
+	assert.NoError(t, err, "Error reading from Neo")
+	assert.True(t, found)
+	assert.Equal(t, 1, count)
+waitLoop:
+	for {
+		select {
+		case c, open := <-conceptCh:
+			if !open {
+				break waitLoop
+			}
+			assert.Equal(t, "ff691bf8-8d92-1a1a-8326-c273400bff0b", c.Uuid)
+			assert.Equal(t, "http://api.ft.com/things/ff691bf8-8d92-1a1a-8326-c273400bff0b", c.Id)
+			assert.Equal(t, "http://api.ft.com/brands/ff691bf8-8d92-1a1a-8326-c273400bff0b", c.ApiUrl)
+			assert.Equal(t, "Business School video", c.PrefLabel)
+			assertListContainsAll(t, []string{"Thing", "Concept", "Brand", "Classification"}, c.Labels)
+			assert.Empty(t, c.LeiCode)
+			assert.Empty(t, c.FactsetId)
+			assert.Empty(t, c.FIGI)
+		case <-time.After(3 * time.Second):
+			t.FailNow()
+		}
+	}
+}
+
 func TestNeoService_ReadOrganisation(t *testing.T) {
 	conn := getDatabaseConnection(t)
 	cleanDB(t, conn)
