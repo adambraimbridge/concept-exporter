@@ -9,17 +9,17 @@ import (
 	"github.com/Financial-Times/concept-exporter/concept"
 	"github.com/Financial-Times/concept-exporter/db"
 	health "github.com/Financial-Times/go-fthealth/v1_1"
-	"github.com/Financial-Times/service-status-go/gtg"
 	"github.com/Financial-Times/neo-utils-go/neoutils"
+	"github.com/Financial-Times/service-status-go/gtg"
 )
 
 const healthPath = "/__health"
 
 type healthService struct {
-	config *healthConfig
-	checks []health.Check
-	client *http.Client
-	conn neoutils.NeoConnection
+	config  *healthConfig
+	checks  []health.Check
+	client  *http.Client
+	conn    neoutils.NeoConnection
 	connErr error
 }
 
@@ -35,10 +35,10 @@ func newHealthService(config *healthConfig) *healthService {
 	tr := &http.Transport{
 		MaxIdleConnsPerHost: 3,
 		Dial: (&net.Dialer{
-			Timeout:   3 * time.Second,
+			Timeout: 3 * time.Second,
 		}).Dial,
 		ResponseHeaderTimeout: 3 * time.Second,
-		IdleConnTimeout: 3 * time.Second,
+		IdleConnTimeout:       3 * time.Second,
 	}
 	svc := &healthService{config: config}
 	svc.checks = []health.Check{

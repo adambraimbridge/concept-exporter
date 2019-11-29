@@ -7,7 +7,6 @@ github.com/Financial-Times/base-ft-rw-app-go v0.0.0-20171010162315-74eab27b0c6d 
 github.com/Financial-Times/base-ft-rw-app-go v0.0.0-20171010162315-74eab27b0c6d/go.mod h1:olJfPwdMPV/SJUrv4J+9gI9yaj7d24vXF2GNisFRCOg=
 github.com/Financial-Times/concepts-rw-neo4j v1.23.2 h1:lYRzr3ZzKxKR2qLW0iVKdvjoKEGx+OWAQNvW2YIGuRY=
 github.com/Financial-Times/concepts-rw-neo4j v1.23.2/go.mod h1:5DkBQpYrZHoo3Qm0KNRfdX7W8C8LrbkpC5g1zCxvl0g=
-github.com/Financial-Times/concepts-rw-neo4j v1.24.1 h1:T4Wy+JsUBLcsuDibMLTLyHnFdNLsV0XgN1h+/ViR7lQ=
 github.com/Financial-Times/content-rw-neo4j v1.0.3-0.20171011115956-641ce08b0417 h1:LBYhP5ZsLR52Ylp1zYnxnWOsyKnZQHnj7Un9/ujtiqI=
 github.com/Financial-Times/content-rw-neo4j v1.0.3-0.20171011115956-641ce08b0417/go.mod h1:TU5tuPvdTnZ2yhW2+BAlXPk/bqh1B5PBqwqPiYyRTqE=
 github.com/Financial-Times/go-fthealth v0.0.0-20171204124831-1b007e2b37b7/go.mod h1:gpAzq6W5rCheYlY32JOIxS/VjVcYHbC2PkMzQngHT9c=

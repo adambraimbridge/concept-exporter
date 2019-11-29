@@ -1,19 +1,13 @@
 package main
 
 import (
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
 	"sync"
 	"syscall"
-
-	cli "github.com/jawher/mow.cli"
-	log "github.com/sirupsen/logrus"
-
-	"net"
 	"time"
-
-	"net/http/pprof"
 
 	"github.com/Financial-Times/concept-exporter/concept"
 	"github.com/Financial-Times/concept-exporter/db"
@@ -24,8 +18,10 @@ import (
 	"github.com/Financial-Times/neo-utils-go/neoutils"
 	status "github.com/Financial-Times/service-status-go/httphandlers"
 	"github.com/gorilla/mux"
+	cli "github.com/jawher/mow.cli"
 	"github.com/rcrowley/go-metrics"
 	"github.com/sethgrid/pester"
+	log "github.com/sirupsen/logrus"
 )
 
 const appDescription = "Exports concept from a data source (Neo4j) and sends it to S3"
@@ -150,7 +146,6 @@ func serveEndpoints(appSystemCode string, appName string, port string, requestHa
 	monitoringRouter = httphandlers.HTTPMetricsHandler(metrics.DefaultRegistry, monitoringRouter)
 
 	serveMux.Handle("/", monitoringRouter)
-	attachProfiler(serveMux)
 	server := &http.Server{
 		Addr:         ":" + port,
 		Handler:      serveMux,
@@ -182,11 +177,4 @@ func waitForSignal() {
 	ch := make(chan os.Signal, 1)
 	signal.Notify(ch, syscall.SIGINT, syscall.SIGTERM)
 	<-ch
-}
-
-func attachProfiler(router *http.ServeMux) {
-	router.HandleFunc("/debug/pprof/", pprof.Index)
-	router.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
-	router.HandleFunc("/debug/pprof/profile", pprof.Profile)
-	router.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
 }
