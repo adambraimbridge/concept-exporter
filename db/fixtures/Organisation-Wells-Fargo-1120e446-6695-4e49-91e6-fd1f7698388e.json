@@ -1,0 +1,51 @@
+{
+    "prefUUID": "1120e446-6695-4e49-91e6-fd1f7698388e",
+    "prefLabel": "Wells Fargo",
+    "type": "PublicCompany",
+    "aliases": [
+        "Wells Fargo Financial",
+        "Wells Fargo & Co.",
+        "Norwest Corp",
+        "Wells Fargo Bank",
+        "Wachovia Corp",
+        "Wells Fargo Financial Canada",
+        "Wells Fargo Financial Leasing",
+        "Wells Fargo Home Mortgage",
+        "Wells Fargo Securities",
+        "Wells Fargo and Co",
+        "Wells Fargo",
+        "Wells Fargo & Company",
+        "Wells Fargo & Co",
+        "Wells Fargo and Company",
+        "Wells Fargo Investments"
+    ],
+    "aggregateHash": "7906209953307351514",
+    "sourceRepresentations": [
+        {
+            "uuid": "0645ee87-accf-316f-bbd4-ef28a548235f",
+            "prefLabel": "Wells Fargo",
+            "type": "Organisation",
+            "authority": "TME",
+            "authorityValue": "TnN0ZWluX09OX0ZvcnR1bmVDb21wYW55X1dGQw==-T04="
+        },
+        {
+            "uuid": "1120e446-6695-4e49-91e6-fd1f7698388e",
+            "prefLabel": "Wells Fargo",
+            "type": "Organisation",
+            "authority": "Smartlogic",
+            "authorityValue": "1120e446-6695-4e49-91e6-fd1f7698388e"
+        }
+    ],
+    "properName": "Wells Fargo & Co.",
+    "shortName": "Wells Fargo",
+    "tradeNames": [
+        "Wells Fargo"
+    ],
+    "countryCode": "US",
+    "countryOfRisk": "US",
+    "countryOfIncorporation": "US",
+    "countryOfOperations": "US",
+    "postalCode": "94104",
+    "yearFounded": 1852,
+    "leiCode": "PBLD0EJDB5FWOLXP3B76"
+}

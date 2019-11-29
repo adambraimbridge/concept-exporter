@@ -12,24 +12,21 @@ import (
 	"github.com/Financial-Times/base-ft-rw-app-go/baseftrwapp"
 	"github.com/Financial-Times/concepts-rw-neo4j/concepts"
 	"github.com/Financial-Times/content-rw-neo4j/content"
-	"github.com/Financial-Times/financial-instruments-rw-neo4j/financialinstruments"
 	"github.com/Financial-Times/neo-utils-go/neoutils"
-	"github.com/Financial-Times/organisations-rw-neo4j/organisations"
 	"github.com/jmcvetta/neoism"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 const (
-	contentUUID             = "a435b4ec-b207-4dce-ac0a-f8e7bbef310b"
-	brandParentUUID         = "dbb0bdae-1f0c-1a1a-b0cb-b2227cce2b54"
-	brandChildUUID          = "ff691bf8-8d92-1a1a-8326-c273400bff0b"
-	brandGrandChildUUID     = "ff691bf8-8d92-2a2a-8326-c273400bff0b"
-	financialInstrumentUUID = "77f613ad-1470-422c-bf7c-1dd4c3fd1693"
-	FakebookConceptUUID     = "eac853f5-3859-4c08-8540-55e043719400"
+	contentUUID         = "a5d684b2-4436-11e9-a965-23d669740bfb"
+	brandParentUUID     = "dbb0bdae-1f0c-1a1a-b0cb-b2227cce2b54"
+	brandChildUUID      = "ff691bf8-8d92-1a1a-8326-c273400bff0b"
+	brandGrandChildUUID = "ff691bf8-8d92-2a2a-8326-c273400bff0b"
+	companyUUID         = "1120e446-6695-4e49-91e6-fd1f7698388e"
 )
 
-var allUUIDs = []string{contentUUID, brandParentUUID, brandChildUUID, brandGrandChildUUID, FakebookConceptUUID, financialInstrumentUUID}
+var allUUIDs = []string{contentUUID, brandParentUUID, brandChildUUID, brandGrandChildUUID, companyUUID}
 
 func getDatabaseConnection(t *testing.T) neoutils.NeoConnection {
 	if testing.Short() {
@@ -53,6 +50,7 @@ func TestNeoService_ReadBrand(t *testing.T) {
 	writeBrands(t, conn)
 	writeContent(t, conn)
 	writeAnnotation(t, conn, fmt.Sprintf("./fixtures/Annotations-%s.json", contentUUID), "v1")
+
 	neoSvc := NewNeoService(conn, "not-needed")
 
 	conceptCh := make(chan Concept)
@@ -86,7 +84,6 @@ func TestNeoService_ReadOrganisation(t *testing.T) {
 	conn := getDatabaseConnection(t)
 	cleanDB(t, conn)
 	writeOrganisations(t, conn)
-	writeFinancialInstruments(t, conn)
 	writeContent(t, conn)
 	writeAnnotation(t, conn, fmt.Sprintf("./fixtures/Annotations-%s-org.json", contentUUID), "v2")
 	neoSvc := NewNeoService(conn, "not-needed")
@@ -104,14 +101,14 @@ waitLoop:
 			if !open {
 				break waitLoop
 			}
-			assert.Equal(t, "eac853f5-3859-4c08-8540-55e043719400", c.Uuid)
-			assert.Equal(t, "http://api.ft.com/things/eac853f5-3859-4c08-8540-55e043719400", c.Id)
-			assert.Equal(t, "http://api.ft.com/organisations/eac853f5-3859-4c08-8540-55e043719400", c.ApiUrl)
-			assert.Equal(t, "Fakebook, Inc.", c.PrefLabel)
+			assert.Equal(t, "1120e446-6695-4e49-91e6-fd1f7698388e", c.Uuid)
+			assert.Equal(t, "http://api.ft.com/things/1120e446-6695-4e49-91e6-fd1f7698388e", c.Id)
+			assert.Equal(t, "http://api.ft.com/organisations/1120e446-6695-4e49-91e6-fd1f7698388e", c.ApiUrl)
+			assert.Equal(t, "Wells Fargo", c.PrefLabel)
 			assertListContainsAll(t, []string{"Thing", "Concept", "Organisation", "PublicCompany", "Company"}, c.Labels)
-			assert.Equal(t, "BQ4BKCS1HXDV9TTTTTTTT", c.LeiCode)
-			assert.Equal(t, "00AAA-E", c.FactsetId)
-			assert.Equal(t, "BB8000C3P0-R2D2", c.FIGI)
+			assert.Equal(t, "PBLD0EJDB5FWOLXP3B76", c.LeiCode)
+			assert.Empty(t, c.FactsetId)
+			assert.Empty(t, c.FIGI)
 		case <-time.After(3 * time.Second):
 			t.FailNow()
 		}
@@ -219,22 +216,15 @@ func writeBrands(t *testing.T, conn neoutils.NeoConnection) concepts.ConceptServ
 	assert.NoError(t, brandRW.Initialise())
 	writeJSONToConceptService(t, brandRW, fmt.Sprintf("./fixtures/Brand-%s-parent.json", brandParentUUID))
 	writeJSONToConceptService(t, brandRW, fmt.Sprintf("./fixtures/Brand-%s-child.json", brandChildUUID))
-	writeJSONToConceptService(t, brandRW, fmt.Sprintf("./fixtures/Brand-%s-grand_child.json", brandGrandChildUUID))
+	//writeJSONToConceptService(t, brandRW, fmt.Sprintf("./fixtures/Brand-%s-grand_child.json", brandGrandChildUUID))
 	return brandRW
 }
 
-func writeOrganisations(t *testing.T, db neoutils.NeoConnection) baseftrwapp.Service {
-	organisationRW := organisations.NewCypherOrganisationService(db)
+func writeOrganisations(t *testing.T, db neoutils.NeoConnection) concepts.ConceptService {
+	organisationRW := concepts.NewConceptService(db)
 	assert.NoError(t, organisationRW.Initialise())
-	writeJSONToContentService(t, organisationRW, fmt.Sprintf("./fixtures/Organisation-Fakebook-%s.json", FakebookConceptUUID))
+	writeJSONToConceptService(t, organisationRW, fmt.Sprintf("./fixtures/Organisation-Wells-Fargo-%s.json", companyUUID))
 	return organisationRW
-}
-
-func writeFinancialInstruments(t *testing.T, db neoutils.NeoConnection) baseftrwapp.Service {
-	fiRW := financialinstruments.NewCypherFinancialInstrumentService(db)
-	assert.NoError(t, fiRW.Initialise())
-	writeJSONToContentService(t, fiRW, fmt.Sprintf("./fixtures/FinancialInstrument-%s.json", financialInstrumentUUID))
-	return fiRW
 }
 
 func writeJSONToConceptService(t *testing.T, service concepts.ConceptService, pathToJsonFile string) {
@@ -245,7 +235,6 @@ func writeJSONToConceptService(t *testing.T, service concepts.ConceptService, pa
 	require.NoError(t, err)
 	_, err = service.Write(inst, "trans_id")
 	require.NoError(t, err)
-
 }
 
 func writeJSONToContentService(t *testing.T, service baseftrwapp.Service, pathToJsonFile string) {
@@ -255,7 +244,6 @@ func writeJSONToContentService(t *testing.T, service baseftrwapp.Service, pathTo
 	inst, _, err := service.DecodeJSON(dec)
 	require.NoError(t, err)
 	require.NoError(t, service.Write(inst, "trans_id"))
-
 }
 
 func writeJSONToAnnotationService(t *testing.T, service annotations.Service, pathToJsonFile, uuid, platform string) {
@@ -273,10 +261,8 @@ func cleanDB(t *testing.T, db neoutils.NeoConnection) {
 	for i, uuid := range allUUIDs {
 		qs[i] = &neoism.CypherQuery{
 			Statement: fmt.Sprintf(`MATCH (a:Thing{uuid:"%s"})
-			OPTIONAL MATCH (a)<-[iden:IDENTIFIES]-(i:Identifier)
-			OPTIONAL MATCH (a)-[:EQUIVALENT_TO]-(t:Thing)
-			DELETE iden, i, t
-			DETACH DELETE a`, uuid),
+			OPTIONAL MATCH (a)-[r]-()
+			DELETE a,r`, uuid),
 		}
 	}
 	err := db.CypherBatch(qs)
