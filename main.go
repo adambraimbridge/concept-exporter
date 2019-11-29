@@ -86,7 +86,7 @@ func main() {
 		neoConn, err := neoutils.Connect(*neoURL, conf)
 
 		if err != nil {
-			log.Fatalf("can't connect to neo4j, error=[%s]\n", err)
+			log.Fatalf("Can't connect to neo4j, error=[%s]\n", err)
 		}
 		tr := &http.Transport{
 			MaxIdleConnsPerHost: 128,
@@ -125,7 +125,7 @@ func main() {
 	}
 	err := app.Run(os.Args)
 	if err != nil {
-		log.Errorf("app could not start, error=[%s]\n", err)
+		log.Errorf("App could not start, error=[%s]\n", err)
 		return
 	}
 }
@@ -173,7 +173,7 @@ func serveEndpoints(appSystemCode string, appName string, port string, requestHa
 	log.Infof("[Shutdown] concept-exporter is shutting down")
 
 	if err := server.Close(); err != nil {
-		log.Errorf("Unable to stop http server: %v", err)
+		log.Errorf("Unable to stop HTTP server: %v", err)
 	}
 	wg.Wait()
 }
