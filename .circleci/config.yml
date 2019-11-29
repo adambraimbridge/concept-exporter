@@ -39,7 +39,7 @@ jobs:
           wget --retry-connrefused --no-check-certificate -T 60 $NEO4J_TEST_URL; curl $NEO4J_TEST_URL
       - run:
           name: Run tests and create coverage report
-          command: go test -mod=readonly -race -cover -coverprofile=${CIRCLE_COVERAGE_REPORT}/coverage.out ./... | go-junit-report > ${CIRCLE_TEST_REPORTS}/junit.xml
+          command: go test -mod=readonly -race -tags=integration -cover -coverprofile=${CIRCLE_COVERAGE_REPORT}/coverage.out ./... | go-junit-report > ${CIRCLE_TEST_REPORTS}/junit.xml
       - run:
           name: Upload Coverage
           command: goveralls -coverprofile=${CIRCLE_COVERAGE_REPORT}/coverage.out -service=circle-ci -repotoken=${COVERALLS_TOKEN}
