@@ -21,14 +21,15 @@ import (
 )
 
 const (
-	contentUUID         = "a5d684b2-4436-11e9-a965-23d669740bfb"
-	brandParentUUID     = "dbb0bdae-1f0c-1a1a-b0cb-b2227cce2b54"
-	brandChildUUID      = "ff691bf8-8d92-1a1a-8326-c273400bff0b"
-	brandGrandChildUUID = "ff691bf8-8d92-2a2a-8326-c273400bff0b"
-	companyUUID         = "1120e446-6695-4e49-91e6-fd1f7698388e"
+	contentUUID             = "a435b4ec-b207-4dce-ac0a-f8e7bbef310b"
+	brandParentUUID         = "dbb0bdae-1f0c-1a1a-b0cb-b2227cce2b54"
+	brandChildUUID          = "ff691bf8-8d92-1a1a-8326-c273400bff0b"
+	brandGrandChildUUID     = "ff691bf8-8d92-2a2a-8326-c273400bff0b"
+	financialInstrumentUUID = "77f613ad-1470-422c-bf7c-1dd4c3fd1693"
+	companyUUID             = "eac853f5-3859-4c08-8540-55e043719400"
 )
 
-var allUUIDs = []string{contentUUID, brandParentUUID, brandChildUUID, brandGrandChildUUID, companyUUID}
+var allUUIDs = []string{contentUUID, brandParentUUID, brandChildUUID, brandGrandChildUUID, financialInstrumentUUID, companyUUID}
 
 func getDatabaseConnection(t *testing.T) neoutils.NeoConnection {
 	if testing.Short() {
@@ -122,6 +123,7 @@ func TestNeoService_ReadOrganisation(t *testing.T) {
 	conn := getDatabaseConnection(t)
 	cleanDB(t, conn)
 	writeOrganisations(t, conn)
+	writeFinancialInstruments(t, conn)
 	writeContent(t, conn)
 	writeAnnotation(t, conn, fmt.Sprintf("./fixtures/Annotations-%s-org.json", contentUUID), "v2")
 	neoSvc := NewNeoService(conn, "not-needed")
@@ -139,14 +141,14 @@ waitLoop:
 			if !open {
 				break waitLoop
 			}
-			assert.Equal(t, "1120e446-6695-4e49-91e6-fd1f7698388e", c.Uuid)
-			assert.Equal(t, "http://api.ft.com/things/1120e446-6695-4e49-91e6-fd1f7698388e", c.Id)
-			assert.Equal(t, "http://api.ft.com/organisations/1120e446-6695-4e49-91e6-fd1f7698388e", c.ApiUrl)
-			assert.Equal(t, "Wells Fargo", c.PrefLabel)
+			assert.Equal(t, "eac853f5-3859-4c08-8540-55e043719400", c.Uuid)
+			assert.Equal(t, "http://api.ft.com/things/eac853f5-3859-4c08-8540-55e043719400", c.Id)
+			assert.Equal(t, "http://api.ft.com/organisations/eac853f5-3859-4c08-8540-55e043719400", c.ApiUrl)
+			assert.Equal(t, "Fakebook", c.PrefLabel)
 			assertListContainsAll(t, []string{"Thing", "Concept", "Organisation", "PublicCompany", "Company"}, c.Labels)
 			assert.Equal(t, "PBLD0EJDB5FWOLXP3B76", c.LeiCode)
-			assert.Empty(t, c.FactsetId)
-			assert.Empty(t, c.FIGI)
+			assert.Empty(t, "", c.FactsetId)
+			assert.Equal(t, "BB8000C3P0-R2D2", c.FIGI)
 		case <-time.After(3 * time.Second):
 			t.FailNow()
 		}
@@ -254,15 +256,22 @@ func writeBrands(t *testing.T, conn neoutils.NeoConnection) concepts.ConceptServ
 	assert.NoError(t, brandRW.Initialise())
 	writeJSONToConceptService(t, brandRW, fmt.Sprintf("./fixtures/Brand-%s-parent.json", brandParentUUID))
 	writeJSONToConceptService(t, brandRW, fmt.Sprintf("./fixtures/Brand-%s-child.json", brandChildUUID))
-	//writeJSONToConceptService(t, brandRW, fmt.Sprintf("./fixtures/Brand-%s-grand_child.json", brandGrandChildUUID))
+	writeJSONToConceptService(t, brandRW, fmt.Sprintf("./fixtures/Brand-%s-grand_child.json", brandGrandChildUUID))
 	return brandRW
 }
 
 func writeOrganisations(t *testing.T, db neoutils.NeoConnection) concepts.ConceptService {
 	organisationRW := concepts.NewConceptService(db)
 	assert.NoError(t, organisationRW.Initialise())
-	writeJSONToConceptService(t, organisationRW, fmt.Sprintf("./fixtures/Organisation-Wells-Fargo-%s.json", companyUUID))
+	writeJSONToConceptService(t, organisationRW, fmt.Sprintf("./fixtures/Organisation-Fakebook-%s.json", companyUUID))
 	return organisationRW
+}
+
+func writeFinancialInstruments(t *testing.T, db neoutils.NeoConnection) concepts.ConceptService {
+	fiRW := concepts.NewConceptService(db)
+	assert.NoError(t, fiRW.Initialise())
+	writeJSONToConceptService(t, fiRW, fmt.Sprintf("./fixtures/FinancialInstrument-%s.json", financialInstrumentUUID))
+	return fiRW
 }
 
 func writeJSONToConceptService(t *testing.T, service concepts.ConceptService, pathToJsonFile string) {
@@ -300,7 +309,7 @@ func cleanDB(t *testing.T, db neoutils.NeoConnection) {
 		qs[i] = &neoism.CypherQuery{
 			Statement: fmt.Sprintf(`MATCH (a:Thing{uuid:"%s"})
 			OPTIONAL MATCH (a)-[r]-()
-			DELETE a,r`, uuid),
+			DETACH DELETE a,r`, uuid),
 		}
 	}
 	err := db.CypherBatch(qs)
