@@ -11,11 +11,11 @@ There are 2 types of exports:
 
 ## Running locally
 
-1. Run the tests and install the binary:
+1. Run the unit and integration tests and install the binary:
 
         go get github.com/Financial-Times/concept-exporter
         cd $GOPATH/src/github.com/Financial-Times/concept-exporter
-        go test ./... -race
+        go test -tags=integration -race ./...
         go install
 
 2. Run the binary (using the `help` flag to see the available optional arguments):
