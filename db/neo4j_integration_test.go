@@ -1,5 +1,3 @@
-//+build integration
-
 package db
 
 import (
@@ -75,7 +73,6 @@ waitLoop:
 			assert.Equal(t, "Business School video", c.PrefLabel)
 			assertListContainsAll(t, []string{"Thing", "Concept", "Brand", "Classification"}, c.Labels)
 			assert.Empty(t, c.LeiCode)
-			assert.Empty(t, c.FactsetId)
 			assert.Empty(t, c.FIGI)
 		case <-time.After(3 * time.Second):
 			t.FailNow()
@@ -111,7 +108,6 @@ waitLoop:
 			assert.Equal(t, "Business School video", c.PrefLabel)
 			assertListContainsAll(t, []string{"Thing", "Concept", "Brand", "Classification"}, c.Labels)
 			assert.Empty(t, c.LeiCode)
-			assert.Empty(t, c.FactsetId)
 			assert.Empty(t, c.FIGI)
 		case <-time.After(3 * time.Second):
 			t.FailNow()
@@ -147,7 +143,6 @@ waitLoop:
 			assert.Equal(t, "Fakebook", c.PrefLabel)
 			assertListContainsAll(t, []string{"Thing", "Concept", "Organisation", "PublicCompany", "Company"}, c.Labels)
 			assert.Equal(t, "PBLD0EJDB5FWOLXP3B76", c.LeiCode)
-			assert.Empty(t, "", c.FactsetId)
 			assert.Equal(t, "BB8000C3P0-R2D2", c.FIGI)
 		case <-time.After(3 * time.Second):
 			t.FailNow()
