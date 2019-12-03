@@ -11,14 +11,22 @@ There are 2 types of exports:
 
 ## Running locally
 
-1. Run the tests and install the binary:
+1. Run the unit tests and install the binary:
 
         go get github.com/Financial-Times/concept-exporter
         cd $GOPATH/src/github.com/Financial-Times/concept-exporter
-        go test ./... -race
+        go test -v -race ./...
         go install
 
-2. Run the binary (using the `help` flag to see the available optional arguments):
+2. Run the integration tests:
+        
+        go test -tags=integration -race ./...
+  
+You should have a running local instance of Neo4j:
+
+        docker run --rm -p 7474:7474 -p 7687:7687 -e NEO4J_ACCEPT_LICENSE_AGREEMENT="yes" -e NEO4J_AUTH="none" neo4j:3.4.10-enterprise
+
+3. Run the binary (using the `help` flag to see the available optional arguments):
 
         $GOPATH/bin/concept-exporter [--help]
 
@@ -32,12 +40,12 @@ Options:
           --app-system-code="concept-exporter"                                      System Code of the application ($APP_SYSTEM_CODE)
           --app-name="concept-exporter"                                             Application name ($APP_NAME)
           --port="8080"                                                             Port to listen on ($APP_PORT)
-          --neo-url="http://localhost:7474/db/data"                                 neo4j endpoint URL ($NEO_URL)
+          --neo-url="http://localhost:7474/db/data"                                 Neo4j endpoint URL ($NEO_URL)
           --s3WriterBaseURL="http://localhost:8080"                                 Base URL to S3 writer endpoint ($S3_WRITER_BASE_URL)
           --s3WriterHealthURL="http://localhost:8080/__gtg"                         Health URL to S3 writer endpoint ($S3_WRITER_HEALTH_URL)
           --conceptTypes=["Brand", "Topic", "Location", "Person", "Organisation"]   Concept types to support ($CONCEPT_TYPES)
 
-3. Test:
+4. Test:
 
          curl http://localhost:8080/__health
 
@@ -132,8 +140,8 @@ Admin endpoints are:
 
 There are several checks performed:
 
-* Checks that a connection can be made to Neo4j, using the neo4j url supplied as a parameter in service startup
-* Checks that the S3 Writer service is healthy
+* Check that a connection can be made to Neo4j, using the Neo4j URL supplied as a parameter in service startup
+* Check that the S3 Writer service is healthy
 
 ### Logging
 
