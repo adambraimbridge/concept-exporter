@@ -49,8 +49,9 @@ func getDatabaseConnection(t *testing.T) neoutils.NeoConnection {
 
 func TestNeoService_ReadBrand(t *testing.T) {
 	conn := getDatabaseConnection(t)
+	svc := concepts.NewConceptService(conn)
 	cleanDB(t, conn)
-	writeBrands(t, conn)
+	writeBrands(t, svc)
 	writeContent(t, conn)
 	writeAnnotation(t, conn, fmt.Sprintf("./fixtures/Annotations-%s.json", contentUUID), "v1")
 
@@ -84,8 +85,9 @@ waitLoop:
 
 func TestNeoService_ReadHasBrand(t *testing.T) {
 	conn := getDatabaseConnection(t)
+	svc := concepts.NewConceptService(conn)
 	cleanDB(t, conn)
-	writeBrands(t, conn)
+	writeBrands(t, svc)
 	writeContent(t, conn)
 	writeAnnotation(t, conn, fmt.Sprintf("./fixtures/Annotations-%s-hasBrand.json", contentUUID), "v1")
 
@@ -119,9 +121,10 @@ waitLoop:
 
 func TestNeoService_ReadOrganisation(t *testing.T) {
 	conn := getDatabaseConnection(t)
+	svc := concepts.NewConceptService(conn)
 	cleanDB(t, conn)
-	writeOrganisations(t, conn)
-	writeFinancialInstruments(t, conn)
+	writeOrganisations(t, svc)
+	writeFinancialInstruments(t, svc)
 	writeContent(t, conn)
 	writeAnnotation(t, conn, fmt.Sprintf("./fixtures/Annotations-%s-org.json", contentUUID), "v2")
 	neoSvc := NewNeoService(conn, "not-needed")
@@ -248,27 +251,24 @@ func writeContent(t *testing.T, conn neoutils.NeoConnection) {
 	writeJSONToContentService(t, contentRW, fmt.Sprintf("./fixtures/Content-%s.json", contentUUID))
 }
 
-func writeBrands(t *testing.T, conn neoutils.NeoConnection) concepts.ConceptService {
-	brandRW := concepts.NewConceptService(conn)
-	assert.NoError(t, brandRW.Initialise())
-	writeJSONToConceptService(t, brandRW, fmt.Sprintf("./fixtures/Brand-%s-parent.json", brandParentUUID))
-	writeJSONToConceptService(t, brandRW, fmt.Sprintf("./fixtures/Brand-%s-child.json", brandChildUUID))
-	writeJSONToConceptService(t, brandRW, fmt.Sprintf("./fixtures/Brand-%s-grand_child.json", brandGrandChildUUID))
-	return brandRW
+func writeBrands(t *testing.T, service concepts.ConceptService) concepts.ConceptService {
+	assert.NoError(t, service.Initialise())
+	writeJSONToConceptService(t, service, fmt.Sprintf("./fixtures/Brand-%s-parent.json", brandParentUUID))
+	writeJSONToConceptService(t, service, fmt.Sprintf("./fixtures/Brand-%s-child.json", brandChildUUID))
+	writeJSONToConceptService(t, service, fmt.Sprintf("./fixtures/Brand-%s-grand_child.json", brandGrandChildUUID))
+	return service
 }
 
-func writeOrganisations(t *testing.T, db neoutils.NeoConnection) concepts.ConceptService {
-	organisationRW := concepts.NewConceptService(db)
-	assert.NoError(t, organisationRW.Initialise())
-	writeJSONToConceptService(t, organisationRW, fmt.Sprintf("./fixtures/Organisation-Fakebook-%s.json", companyUUID))
-	return organisationRW
+func writeOrganisations(t *testing.T, service concepts.ConceptService) concepts.ConceptService {
+	assert.NoError(t, service.Initialise())
+	writeJSONToConceptService(t, service, fmt.Sprintf("./fixtures/Organisation-Fakebook-%s.json", companyUUID))
+	return service
 }
 
-func writeFinancialInstruments(t *testing.T, db neoutils.NeoConnection) concepts.ConceptService {
-	fiRW := concepts.NewConceptService(db)
-	assert.NoError(t, fiRW.Initialise())
-	writeJSONToConceptService(t, fiRW, fmt.Sprintf("./fixtures/FinancialInstrument-%s.json", financialInstrumentUUID))
-	return fiRW
+func writeFinancialInstruments(t *testing.T, service concepts.ConceptService) concepts.ConceptService {
+	assert.NoError(t, service.Initialise())
+	writeJSONToConceptService(t, service, fmt.Sprintf("./fixtures/FinancialInstrument-%s.json", financialInstrumentUUID))
+	return service
 }
 
 func writeJSONToConceptService(t *testing.T, service concepts.ConceptService, pathToJsonFile string) {
@@ -279,6 +279,7 @@ func writeJSONToConceptService(t *testing.T, service concepts.ConceptService, pa
 	require.NoError(t, err)
 	_, err = service.Write(inst, "trans_id")
 	require.NoError(t, err)
+	f.Close()
 }
 
 func writeJSONToContentService(t *testing.T, service baseftrwapp.Service, pathToJsonFile string) {
@@ -288,6 +289,7 @@ func writeJSONToContentService(t *testing.T, service baseftrwapp.Service, pathTo
 	inst, _, err := service.DecodeJSON(dec)
 	require.NoError(t, err)
 	require.NoError(t, service.Write(inst, "trans_id"))
+	f.Close()
 }
 
 func writeJSONToAnnotationService(t *testing.T, service annotations.Service, pathToJsonFile, uuid, platform string) {
@@ -297,6 +299,7 @@ func writeJSONToAnnotationService(t *testing.T, service annotations.Service, pat
 	inst, err := service.DecodeJSON(dec)
 	require.NoError(t, err)
 	require.NoError(t, service.Write(uuid, fmt.Sprintf("annotations-%s", platform), platform, "trans_id", inst))
+	f.Close()
 }
 
 //DELETES ALL DATA! DO NOT USE IN PRODUCTION!!!
