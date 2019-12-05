@@ -1,11 +1,36 @@
 {
-  "uuid": "eac853f5-3859-4c08-8540-55e043719400",
-  "properName": "Fakebook, Inc.",
-  "prefLabel": "Fakebook, Inc.",
-  "alternativeIdentifiers": {
-    "uuids": ["eac853f5-3859-4c08-8540-55e043719400"],
-    "factsetIdentifier": "00AAA-E",
-    "leiCode": "BQ4BKCS1HXDV9TTTTTTTT"
-  },
-  "type": "PublicCompany"
+    "prefUUID": "eac853f5-3859-4c08-8540-55e043719400",
+    "prefLabel": "Fakebook",
+    "type": "PublicCompany",
+    "aliases": [
+        "Fakebook Inc"
+    ],
+    "aggregateHash": "7906209953307351514",
+    "sourceRepresentations": [
+        {
+            "uuid": "eac853f5-3859-4c08-8540-55e043719400",
+            "prefLabel": "Fakebook",
+            "type": "Organisation",
+            "authority": "Smartlogic",
+            "authorityValue": "eac853f5-3859-4c08-8540-55e043719400"
+        }
+    ],
+    "alternativeIdentifiers": {
+        "uuids": [
+            "eac853f5-3859-4c08-8540-55e043719400"
+        ],
+        "leiCode": "BQ4BKCS1HXDV9TTTTTTTT"
+    },
+    "properName": "Fakebook & Co.",
+    "shortName": "Fakebook",
+    "tradeNames": [
+        "Fakebook"
+    ],
+    "countryCode": "US",
+    "countryOfRisk": "US",
+    "countryOfIncorporation": "US",
+    "countryOfOperations": "US",
+    "postalCode": "94104",
+    "yearFounded": 1852,
+    "leiCode": "PBLD0EJDB5FWOLXP3B76"
 }

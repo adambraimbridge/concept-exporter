@@ -1,12 +1,18 @@
 {
-  "uuid": "77f613ad-1470-422c-bf7c-1dd4c3fd1693",
-  "prefLabel": "Fakebook, Inc.",
-  "alternativeIdentifiers": {
-    "uuids": [
-      "77f613ad-1470-422c-bf7c-1dd4c3fd1693"
+    "prefUUID": "77f613ad-1470-422c-bf7c-1dd4c3fd1693",
+    "prefLabel": "Fakebook, Inc.",
+    "type": "FinancialInstrument",
+    "sourceRepresentations": [
+        {
+            "uuid": "77f613ad-1470-422c-bf7c-1dd4c3fd1693",
+            "prefLabel": "FinancialInstrument Pref Label",
+            "type": "FinancialInstrument",
+            "authority": "FACTSET",
+            "authorityValue": "746464",
+            "figiCode": "BB8000C3P0-R2D2",
+            "issuedBy": "eac853f5-3859-4c08-8540-55e043719400"
+        }
     ],
-    "factsetIdentifier": "F4K31-D",
-    "figiCode": "BB8000C3P0-R2D2"
-  },
-  "issuedBy": "eac853f5-3859-4c08-8540-55e043719400"
+    "figiCode": "BB8000C3P0-R2D2",
+    "issuedBy": "eac853f5-3859-4c08-8540-55e043719400"
 }
