@@ -5,7 +5,7 @@ import (
 	"sync"
 
 	"github.com/Financial-Times/concept-exporter/db"
-	log "github.com/sirupsen/logrus"
+	"github.com/Financial-Times/go-logger/v2"
 )
 
 type State string
@@ -45,10 +45,11 @@ type Inquirer interface {
 
 type NeoInquirer struct {
 	Neo db.Service
+	Log *logger.UPPLogger
 }
 
-func NewNeoInquirer(neo db.Service) *NeoInquirer {
-	return &NeoInquirer{Neo: neo}
+func NewNeoInquirer(neo db.Service, log *logger.UPPLogger) *NeoInquirer {
+	return &NeoInquirer{Neo: neo, Log: log}
 }
 
 func (n *NeoInquirer) Inquire(candidates []string, tid string) []*Worker {
@@ -58,23 +59,23 @@ func (n *NeoInquirer) Inquire(candidates []string, tid string) []*Worker {
 		workers = append(workers, worker)
 	}
 	go func() {
-		log.WithField("transaction_id", tid).Infof("Starting reading concepts from Neo: %v", candidates)
+		n.Log.WithField("transaction_id", tid).Infof("Starting reading concepts from Neo: %v", candidates)
 		for _, worker := range workers {
 			count, found, err := n.Neo.Read(worker.ConceptType, worker.ConceptCh)
 			if err != nil {
-				log.WithField("transaction_id", tid).Errorf("Error by reading %v concept type from Neo: %+v", worker.ConceptType, err)
+				n.Log.WithField("transaction_id", tid).Errorf("Error by reading %v concept type from Neo: %+v", worker.ConceptType, err)
 				worker.Errch <- err
 				continue
 			}
 			if !found {
-				log.WithField("transaction_id", tid).Errorf("Reading %v concept type from Neo returned empty result", worker.ConceptType)
+				n.Log.WithField("transaction_id", tid).Errorf("Reading %v concept type from Neo returned empty result", worker.ConceptType)
 				worker.Errch <- fmt.Errorf("Reading %v concept type from Neo returned empty result", worker.ConceptType)
 				continue
 			}
-			log.WithField("transaction_id", tid).Infof("Found %v entries for %v concept", count, worker.ConceptType)
+			n.Log.WithField("transaction_id", tid).Infof("Found %v entries for %v concept", count, worker.ConceptType)
 			worker.setCount(count)
 		}
-		log.WithField("transaction_id", tid).Info("Finished Neo read")
+		n.Log.WithField("transaction_id", tid).Info("Finished Neo read")
 	}()
 	return workers
 }

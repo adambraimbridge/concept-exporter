@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/Financial-Times/concept-exporter/db"
+	"github.com/Financial-Times/go-logger/v2"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -21,8 +22,10 @@ func (m *mockDbService) Read(conceptType string, conceptCh chan db.Concept) (int
 }
 
 func TestNeoInquirer_InquireSuccessfully(t *testing.T) {
+	log := logger.NewUPPLogger("Test", "PANIC")
+
 	mockDb := new(mockDbService)
-	inquirer := NewNeoInquirer(mockDb)
+	inquirer := NewNeoInquirer(mockDb, log)
 
 	cType := "Brand"
 	mockDb.On("Read", cType, mock.AnythingOfType("chan db.Concept")).Return(2, true, nil)
@@ -40,8 +43,10 @@ func TestNeoInquirer_InquireSuccessfully(t *testing.T) {
 }
 
 func TestNeoInquirer_InquireSuccessfullyWithEmptyResult(t *testing.T) {
+	log := logger.NewUPPLogger("Test", "PANIC")
+
 	mockDb := new(mockDbService)
-	inquirer := NewNeoInquirer(mockDb)
+	inquirer := NewNeoInquirer(mockDb, log)
 
 	cType := "Brand"
 	mockDb.On("Read", cType, mock.AnythingOfType("chan db.Concept")).Return(0, false, nil)
@@ -60,8 +65,10 @@ func TestNeoInquirer_InquireSuccessfullyWithEmptyResult(t *testing.T) {
 }
 
 func TestNeoInquirer_InquireWithError(t *testing.T) {
+	log := logger.NewUPPLogger("Test", "PANIC")
+
 	mockDb := new(mockDbService)
-	inquirer := NewNeoInquirer(mockDb)
+	inquirer := NewNeoInquirer(mockDb, log)
 
 	cType := "Brand"
 	mockDb.On("Read", cType, mock.AnythingOfType("chan db.Concept")).Return(0, false, errors.New("Neo err"))

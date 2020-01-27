@@ -145,5 +145,4 @@ There are several checks performed:
 
 ### Logging
 
-* The application uses [logrus](https://github.com/sirupsen/logrus); the log file is initialised in [main.go](main.go).
 * NOTE: `/__build-info` and `/__gtg` endpoints are not logged as they are called every second from varnish/vulcand and this information is not needed in logs/splunk.

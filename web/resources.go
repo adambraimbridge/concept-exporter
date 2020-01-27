@@ -9,19 +9,21 @@ import (
 	"strings"
 
 	"github.com/Financial-Times/concept-exporter/export"
-	"github.com/Financial-Times/transactionid-utils-go"
-	log "github.com/sirupsen/logrus"
+	"github.com/Financial-Times/go-logger/v2"
+	transactionidutils "github.com/Financial-Times/transactionid-utils-go"
 )
 
 type RequestHandler struct {
 	Exporter     *export.Service
 	ConceptTypes []string
+	Log          *logger.UPPLogger
 }
 
-func NewRequestHandler(fullExporter *export.Service, conceptTypes []string) *RequestHandler {
+func NewRequestHandler(fullExporter *export.Service, conceptTypes []string, log *logger.UPPLogger) *RequestHandler {
 	return &RequestHandler{
 		Exporter:     fullExporter,
 		ConceptTypes: conceptTypes,
+		Log:          log,
 	}
 }
 
@@ -35,7 +37,7 @@ func (handler *RequestHandler) GetJob(writer http.ResponseWriter, request *http.
 	err := json.NewEncoder(writer).Encode(job)
 	if err != nil {
 		msg := fmt.Sprintf(`Failed to write job %v to response writer: "%v"`, job.ID, err)
-		log.Warn(msg)
+		handler.Log.Warn(msg)
 		fmt.Fprintf(writer, "{\"ID\": \"%v\"}", job.ID)
 		return
 	}
@@ -63,7 +65,7 @@ func (handler *RequestHandler) Export(writer http.ResponseWriter, request *http.
 	err := json.NewEncoder(writer).Encode(job)
 	if err != nil {
 		msg := fmt.Sprintf(`Failed to write job %v to response writer: "%v"`, job.ID, err)
-		log.Warn(msg)
+		handler.Log.Warn(msg)
 		fmt.Fprintf(writer, "{\"ID\": \"%v\"}", job.ID)
 		return
 	}
@@ -94,13 +96,14 @@ func (handler *RequestHandler) getCandidateConceptTypes(request *http.Request, t
 		}
 	}
 	if candidates == nil || len(candidates) == 0 {
-		log.WithField("transaction_id", tid).Infof("Content type candidates are empty. Using all supported ones: %v", handler.ConceptTypes)
+		handler.Log.WithField("transaction_id", tid).Infof("Content type candidates are empty. Using all supported ones: %v", handler.ConceptTypes)
 		candidates = handler.ConceptTypes
 	}
 	return
 }
 
 func extractCandidateConceptTypesFromRequest(request *http.Request) (candidates []string) {
+	log := logger.NewUPPInfoLogger("concept-exporter")
 	var result map[string]interface{}
 	body, err := ioutil.ReadAll(request.Body)
 	if err != nil {
