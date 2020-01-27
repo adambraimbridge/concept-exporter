@@ -34,7 +34,7 @@ func (handler *RequestHandler) GetJob(writer http.ResponseWriter, request *http.
 
 	job := handler.Exporter.GetCurrentJob()
 
-	err := json.NewEncoder(writer).Encode(job)
+	err := json.NewEncoder(writer).Encode(&job)
 	if err != nil {
 		msg := fmt.Sprintf(`Failed to write job %v to response writer: "%v"`, job.ID, err)
 		handler.Log.Warn(msg)
@@ -62,7 +62,7 @@ func (handler *RequestHandler) Export(writer http.ResponseWriter, request *http.
 	writer.WriteHeader(http.StatusAccepted)
 	writer.Header().Add("Content-Type", "application/json")
 
-	err := json.NewEncoder(writer).Encode(job)
+	err := json.NewEncoder(writer).Encode(&job)
 	if err != nil {
 		msg := fmt.Sprintf(`Failed to write job %v to response writer: "%v"`, job.ID, err)
 		handler.Log.Warn(msg)
