@@ -14,12 +14,12 @@ import (
 )
 
 type RequestHandler struct {
-	Exporter     *export.Service
+	Exporter     *export.FullExporter
 	ConceptTypes []string
 	Log          *logger.UPPLogger
 }
 
-func NewRequestHandler(fullExporter *export.Service, conceptTypes []string, log *logger.UPPLogger) *RequestHandler {
+func NewRequestHandler(fullExporter *export.FullExporter, conceptTypes []string, log *logger.UPPLogger) *RequestHandler {
 	return &RequestHandler{
 		Exporter:     fullExporter,
 		ConceptTypes: conceptTypes,
