@@ -14,14 +14,14 @@ import (
 	"github.com/Financial-Times/concept-exporter/export"
 	"github.com/Financial-Times/concept-exporter/web"
 	health "github.com/Financial-Times/go-fthealth/v1_1"
-	"github.com/Financial-Times/http-handlers-go/httphandlers"
+	"github.com/Financial-Times/go-logger/v2"
+	"github.com/Financial-Times/http-handlers-go/v2/httphandlers"
 	"github.com/Financial-Times/neo-utils-go/neoutils"
 	status "github.com/Financial-Times/service-status-go/httphandlers"
 	"github.com/gorilla/mux"
 	cli "github.com/jawher/mow.cli"
 	"github.com/rcrowley/go-metrics"
 	"github.com/sethgrid/pester"
-	log "github.com/sirupsen/logrus"
 )
 
 const appDescription = "Exports concept from a data source (Neo4j) and sends it to S3"
@@ -71,10 +71,15 @@ func main() {
 		Desc:   "Concept types to support",
 		EnvVar: "CONCEPT_TYPES",
 	})
+	logLevel := app.String(cli.StringOpt{
+		Name:   "log-level",
+		Value:  "info",
+		Desc:   "Log level for the service",
+		EnvVar: "LOG_LEVEL",
+	})
 
-	log.SetLevel(log.InfoLevel)
-	log.Infof("[Startup] concept-exporter is starting ")
-
+	log := logger.NewUPPLogger("concept-exporter", *logLevel)
+	
 	app.Action = func() {
 		log.WithField("event", "service_started").WithField("service_name", *appName).Info("Service started")
 		conf := neoutils.DefaultConnectionConfig()
@@ -102,8 +107,8 @@ func main() {
 
 		uploader := &concept.S3Updater{Client: client, S3WriterBaseURL: *s3WriterBaseURL, S3WriterHealthURL: *s3WriterHealthURL}
 		neoService := db.NewNeoService(neoConn, *neoURL)
-		fullExporter := export.NewFullExporter(30, uploader, concept.NewNeoInquirer(neoService),
-			export.NewCsvExporter())
+		fullExporter := export.NewFullExporter(30, uploader, concept.NewNeoInquirer(neoService, log),
+			export.NewCsvExporter(), log)
 
 		go func() {
 			healthService := newHealthService(
@@ -114,7 +119,7 @@ func main() {
 					s3Uploader:    uploader,
 					neoService:    neoService,
 				})
-			serveEndpoints(*appSystemCode, *appName, *port, web.NewRequestHandler(fullExporter, *conceptTypes), healthService)
+			serveEndpoints(*appSystemCode, *appName, *port, web.NewRequestHandler(fullExporter, *conceptTypes, log), healthService, log)
 		}()
 
 		waitForSignal()
@@ -127,7 +132,7 @@ func main() {
 }
 
 func serveEndpoints(appSystemCode string, appName string, port string, requestHandler *web.RequestHandler,
-	healthService *healthService) {
+	healthService *healthService, log *logger.UPPLogger) {
 
 	serveMux := http.NewServeMux()
 
@@ -142,7 +147,7 @@ func serveEndpoints(appSystemCode string, appName string, port string, requestHa
 	servicesRouter.HandleFunc("/job", requestHandler.GetJob).Methods(http.MethodGet)
 
 	var monitoringRouter http.Handler = servicesRouter
-	monitoringRouter = httphandlers.TransactionAwareRequestLoggingHandler(log.StandardLogger(), monitoringRouter)
+	monitoringRouter = httphandlers.TransactionAwareRequestLoggingHandler(log, monitoringRouter)
 	monitoringRouter = httphandlers.HTTPMetricsHandler(metrics.DefaultRegistry, monitoringRouter)
 
 	serveMux.Handle("/", monitoringRouter)

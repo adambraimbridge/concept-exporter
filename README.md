@@ -44,6 +44,7 @@ Options:
           --s3WriterBaseURL="http://localhost:8080"                                 Base URL to S3 writer endpoint ($S3_WRITER_BASE_URL)
           --s3WriterHealthURL="http://localhost:8080/__gtg"                         Health URL to S3 writer endpoint ($S3_WRITER_HEALTH_URL)
           --conceptTypes=["Brand", "Topic", "Location", "Person", "Organisation"]   Concept types to support ($CONCEPT_TYPES)
+          --logLevel                                                                Logging level (DEBUG, INFO, WARN, ERROR) (env $LOG_LEVEL) (default "INFO")
 
 4. Test:
 
@@ -145,5 +146,4 @@ There are several checks performed:
 
 ### Logging
 
-* The application uses [logrus](https://github.com/sirupsen/logrus); the log file is initialised in [main.go](main.go).
 * NOTE: `/__build-info` and `/__gtg` endpoints are not logged as they are called every second from varnish/vulcand and this information is not needed in logs/splunk.

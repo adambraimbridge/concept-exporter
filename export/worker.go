@@ -5,8 +5,8 @@ import (
 	"sync"
 
 	"github.com/Financial-Times/concept-exporter/concept"
+	"github.com/Financial-Times/go-logger/v2"
 	"github.com/pborman/uuid"
-	log "github.com/sirupsen/logrus"
 )
 
 type Job struct {
@@ -29,14 +29,16 @@ type Service struct {
 	Updater               concept.Updater
 	Inquirer              concept.Inquirer
 	Exporter              *CsvExporter
+	Log                   *logger.UPPLogger
 }
 
-func NewFullExporter(nrOfWorkers int, exporter concept.Updater, inquirer concept.Inquirer, csvExporter *CsvExporter) *Service {
+func NewFullExporter(nrOfWorkers int, exporter concept.Updater, inquirer concept.Inquirer, csvExporter *CsvExporter, log *logger.UPPLogger) *Service {
 	return &Service{
 		NrOfConcurrentWorkers: nrOfWorkers,
 		Updater:               exporter,
 		Inquirer:              inquirer,
 		Exporter:              csvExporter,
+		Log:                   log,
 	}
 }
 
@@ -119,20 +121,20 @@ func (fe *Service) setJobFailed(cType string) {
 
 func (fe *Service) RunFullExport(tid string) {
 	if fe.job == nil || fe.job.Status != concept.STARTING {
-		log.WithField("transaction_id", tid).Error("No job to be run")
+		fe.Log.WithField("transaction_id", tid).Error("No job to be run")
 		return
 	}
 
-	log.Infof("Job started: %v", fe.job.ID)
+	fe.Log.Infof("Job started: %v", fe.job.ID)
 	fe.setJobStatus(concept.RUNNING)
 	defer func() {
 		fe.setJobStatus(concept.FINISHED)
-		log.Infof("Finished job %v with failed concept(s): %v, progress: %v", fe.job.ID, fe.job.Failed, fe.job.Progress)
+		fe.Log.Infof("Finished job %v with failed concept(s): %v, progress: %v", fe.job.ID, fe.job.Failed, fe.job.Progress)
 	}()
 
 	err := fe.Exporter.Prepare(fe.job.Concepts)
 	if err != nil {
-		log.WithField("transaction_id", tid).Errorf("Preparing CSV writer failed: %v", err.Error())
+		fe.Log.WithField("transaction_id", tid).Errorf("Preparing CSV writer failed: %v", err.Error())
 		fe.setJobErrorMessage(fmt.Sprintf("%s %s", fe.job.ErrorMessage, err.Error()))
 		return
 	}
@@ -174,7 +176,7 @@ func (fe *Service) runExport(worker *concept.Worker, tid string) {
 			if !ok {
 				err := fe.Updater.Upload(fe.Exporter.GetBytes(worker.ConceptType), fe.Exporter.GetFileName(worker.ConceptType), tid)
 				if err != nil {
-					log.WithField("transaction_id", tid).Errorf("Upload to S3 Writer failed: %v", err)
+					fe.Log.WithField("transaction_id", tid).Errorf("Upload to S3 Writer failed: %v", err)
 					fe.setJobFailed(worker.ConceptType)
 					fe.setWorkerErrorMessage(worker, fmt.Sprintf("%s %s", worker.ErrorMessage, err.Error()))
 				}
