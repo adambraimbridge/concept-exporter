@@ -11,7 +11,6 @@ import (
 
 type Job struct {
 	sync.RWMutex
-	wg           sync.WaitGroup
 	NrWorker     int               `json:"-"`
 	Workers      []*concept.Worker `json:"ConceptWorkers,omitempty"`
 	ID           string            `json:"ID"`
