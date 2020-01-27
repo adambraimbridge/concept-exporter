@@ -21,7 +21,7 @@ type Job struct {
 	ErrorMessage string            `json:"ErrorMessage,omitempty"`
 }
 
-type Service struct {
+type FullExporter struct {
 	sync.RWMutex
 	job                   *Job
 	NrOfConcurrentWorkers int
@@ -31,8 +31,8 @@ type Service struct {
 	Log                   *logger.UPPLogger
 }
 
-func NewFullExporter(nrOfWorkers int, exporter concept.Updater, inquirer concept.Inquirer, csvExporter *CsvExporter, log *logger.UPPLogger) *Service {
-	return &Service{
+func NewFullExporter(nrOfWorkers int, exporter concept.Updater, inquirer concept.Inquirer, csvExporter *CsvExporter, log *logger.UPPLogger) *FullExporter {
+	return &FullExporter{
 		NrOfConcurrentWorkers: nrOfWorkers,
 		Updater:               exporter,
 		Inquirer:              inquirer,
@@ -41,7 +41,7 @@ func NewFullExporter(nrOfWorkers int, exporter concept.Updater, inquirer concept
 	}
 }
 
-func (fe *Service) IsRunningJob() bool {
+func (fe *FullExporter) IsRunningJob() bool {
 	fe.Lock()
 	defer fe.Unlock()
 	if fe.job == nil {
@@ -50,7 +50,7 @@ func (fe *Service) IsRunningJob() bool {
 	return fe.job.Status == concept.RUNNING
 }
 
-func (fe *Service) GetCurrentJob() Job {
+func (fe *FullExporter) GetCurrentJob() Job {
 	fe.Lock()
 	defer fe.Unlock()
 	if fe.job == nil {
@@ -59,7 +59,7 @@ func (fe *Service) GetCurrentJob() Job {
 	return fe.getJob()
 }
 
-func (fe *Service) getJob() Job {
+func (fe *FullExporter) getJob() Job {
 	var workers []*concept.Worker
 	for _, w := range fe.job.Workers {
 		workers = append(workers, &concept.Worker{
@@ -81,44 +81,44 @@ func (fe *Service) getJob() Job {
 	}
 }
 
-func (fe *Service) CreateJob(candidates []string, errMsg string) Job {
+func (fe *FullExporter) CreateJob(candidates []string, errMsg string) Job {
 	fe.Lock()
 	defer fe.Unlock()
 	fe.job = &Job{ID: "job_" + uuid.New(), NrWorker: fe.NrOfConcurrentWorkers, Status: concept.STARTING, Concepts: candidates, ErrorMessage: errMsg}
 	return fe.getJob()
 }
 
-func (fe *Service) setJobStatus(state concept.State) {
+func (fe *FullExporter) setJobStatus(state concept.State) {
 	fe.Lock()
 	defer fe.Unlock()
 	fe.job.Status = state
 }
 
-func (fe *Service) setJobWorkers(workers []*concept.Worker) {
+func (fe *FullExporter) setJobWorkers(workers []*concept.Worker) {
 	fe.Lock()
 	defer fe.Unlock()
 	fe.job.Workers = workers
 }
 
-func (fe *Service) setJobErrorMessage(msg string) {
+func (fe *FullExporter) setJobErrorMessage(msg string) {
 	fe.Lock()
 	defer fe.Unlock()
 	fe.job.ErrorMessage = msg
 }
 
-func (fe *Service) setJobProgress(cType string) {
+func (fe *FullExporter) setJobProgress(cType string) {
 	fe.Lock()
 	defer fe.Unlock()
 	fe.job.Progress = append(fe.job.Progress, cType)
 }
 
-func (fe *Service) setJobFailed(cType string) {
+func (fe *FullExporter) setJobFailed(cType string) {
 	fe.Lock()
 	defer fe.Unlock()
 	fe.job.Failed = append(fe.job.Failed, cType)
 }
 
-func (fe *Service) RunFullExport(tid string) {
+func (fe *FullExporter) RunFullExport(tid string) {
 	if fe.job == nil || fe.job.Status != concept.STARTING {
 		fe.Log.WithField("transaction_id", tid).Error("No job to be run")
 		return
@@ -145,25 +145,25 @@ func (fe *Service) RunFullExport(tid string) {
 	}
 }
 
-func (fe *Service) setWorkerState(worker *concept.Worker, state concept.State) {
+func (fe *FullExporter) setWorkerState(worker *concept.Worker, state concept.State) {
 	fe.Lock()
 	defer fe.Unlock()
 	worker.Status = state
 }
 
-func (fe *Service) setWorkerErrorMessage(worker *concept.Worker, msg string) {
+func (fe *FullExporter) setWorkerErrorMessage(worker *concept.Worker, msg string) {
 	fe.Lock()
 	defer fe.Unlock()
 	worker.ErrorMessage = msg
 }
 
-func (fe *Service) incWorkerProgress(worker *concept.Worker) {
+func (fe *FullExporter) incWorkerProgress(worker *concept.Worker) {
 	fe.Lock()
 	defer fe.Unlock()
 	worker.Progress++
 }
 
-func (fe *Service) runExport(worker *concept.Worker, tid string) {
+func (fe *FullExporter) runExport(worker *concept.Worker, tid string) {
 	fe.setWorkerState(worker, concept.RUNNING)
 	defer func() {
 		fe.setWorkerState(worker, concept.FINISHED)
