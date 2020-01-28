@@ -16,7 +16,7 @@ import (
 	health "github.com/Financial-Times/go-fthealth/v1_1"
 	"github.com/Financial-Times/go-logger/v2"
 	"github.com/Financial-Times/http-handlers-go/v2/httphandlers"
-	"github.com/Financial-Times/neo-utils-go/neoutils"
+	"github.com/Financial-Times/neo-utils-go/v2/neoutils"
 	status "github.com/Financial-Times/service-status-go/httphandlers"
 	"github.com/gorilla/mux"
 	cli "github.com/jawher/mow.cli"
@@ -79,12 +79,12 @@ func main() {
 	})
 
 	log := logger.NewUPPLogger("concept-exporter", *logLevel)
-	
+
 	app.Action = func() {
 		log.WithField("event", "service_started").WithField("service_name", *appName).Info("Service started")
 		conf := neoutils.DefaultConnectionConfig()
 		conf.HTTPClient.Timeout = 10 * time.Minute
-		neoConn, err := neoutils.Connect(*neoURL, conf)
+		neoConn, err := neoutils.Connect(*neoURL, conf, log)
 
 		if err != nil {
 			log.Fatalf("Can't connect to neo4j, error=[%s]\n", err)
@@ -110,19 +110,16 @@ func main() {
 		fullExporter := export.NewFullExporter(30, uploader, concept.NewNeoInquirer(neoService, log),
 			export.NewCsvExporter(), log)
 
-		go func() {
-			healthService := newHealthService(
-				&healthConfig{
-					appSystemCode: *appSystemCode,
-					appName:       *appName,
-					port:          *port,
-					s3Uploader:    uploader,
-					neoService:    neoService,
-				})
-			serveEndpoints(*appSystemCode, *appName, *port, web.NewRequestHandler(fullExporter, *conceptTypes, log), healthService, log)
-		}()
-
-		waitForSignal()
+		healthService := newHealthService(
+			&healthConfig{
+				appSystemCode: *appSystemCode,
+				appName:       *appName,
+				port:          *port,
+				s3Uploader:    uploader,
+				neoService:    neoService,
+				log:           log,
+			})
+		serveEndpoints(*appSystemCode, *appName, *port, web.NewRequestHandler(fullExporter, *conceptTypes, log), healthService, log)
 	}
 	err := app.Run(os.Args)
 	if err != nil {
