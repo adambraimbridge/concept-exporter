@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/Financial-Times/neo-model-utils-go/mapper"
-	"github.com/Financial-Times/neo-utils-go/neoutils"
+	"github.com/Financial-Times/neo-utils-go/v2/neoutils"
 	"github.com/jmcvetta/neoism"
 )
 
