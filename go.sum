@@ -25,9 +25,8 @@ github.com/Financial-Times/kafka v0.0.0-20181214115819-fddecb2b8f89/go.mod h1:9i
 github.com/Financial-Times/kafka-client-go v0.0.0-20181214120216-c3a1941e42a4/go.mod h1:IRxo6zPqM44uCWpM7YBkm5o9lOxwPgR0/WvCX0KcV/Y=
 github.com/Financial-Times/neo-model-utils-go v0.0.0-20180712095719-aea1e95c8305 h1:ob+VRuAq7QGfqT4ccoH5Ru0nfnBmjmNgUEaLzXTzUNw=
 github.com/Financial-Times/neo-model-utils-go v0.0.0-20180712095719-aea1e95c8305/go.mod h1:HdCuBcOftPWj3SBix/6H9NbPQpur9F7stSF0MEROMcU=
+github.com/Financial-Times/neo-utils-go v0.0.0-20180807105745-1fe6ae2f38f3 h1:oH+0BiMwcZVV1zwYm4f/jybJ9LhzrQn1Y4WwbIpwQ+s=
 github.com/Financial-Times/neo-utils-go v0.0.0-20180807105745-1fe6ae2f38f3/go.mod h1:LF1qICt4PuWDINYtXL4WXU595WTKReIBwV6obcncNBI=
-github.com/Financial-Times/neo-utils-go v0.0.0-20181119150836-7fc6c3f7b78f h1:OSAi1EQx/JH201+Yw465BZEpAqickhoDoyN0l3fJMQw=
-github.com/Financial-Times/neo-utils-go v0.0.0-20181119150836-7fc6c3f7b78f/go.mod h1:LF1qICt4PuWDINYtXL4WXU595WTKReIBwV6obcncNBI=
 github.com/Financial-Times/service-status-go v0.0.0-20160323111542-3f5199736a3d h1:USNBTIof6vWGM49SYrxvC5Y8NqyDL3YuuYmID81ORZQ=
 github.com/Financial-Times/service-status-go v0.0.0-20160323111542-3f5199736a3d/go.mod h1:7zULC9rrq6KxFkpB3Y5zNVaEwrf1g2m3dvXJBPDXyvM=
 github.com/Financial-Times/transactionid-utils-go v0.2.0 h1:YcET5Hd1fUGWWpQSVszYUlAc15ca8tmjRetUuQKRqEQ=
@@ -117,6 +116,8 @@ github.com/sirupsen/logrus v1.0.5/go.mod h1:pMByvHTf9Beacp5x1UXfOR9xyW/9antXMhjM
 github.com/sirupsen/logrus v1.1.0/go.mod h1:zrgwTnHtNr00buQ1vSptGe8m1f/BbgsPukg8qsT7A+A=
 github.com/sirupsen/logrus v1.1.1 h1:VzGj7lhU7KEB9e9gMpAV/v5XT2NVSvLJhJLCWbnkgXg=
 github.com/sirupsen/logrus v1.1.1/go.mod h1:zrgwTnHtNr00buQ1vSptGe8m1f/BbgsPukg8qsT7A+A=
+github.com/sirupsen/logrus v1.2.0 h1:juTguoYk5qI21pwyTXY3B3Y5cOTH3ZUyZCg1v/mihuo=
+github.com/sirupsen/logrus v1.2.0/go.mod h1:LxeOpSwHxABJmUn/MG1IvRgCAasNZTLOkJPxbbu5VWo=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/objx v0.1.1/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/objx v0.2.0 h1:Hbg2NidpLE8veEBkEZTL3CvlkUIVzuU9jDplZO54c48=
