@@ -26,10 +26,8 @@ github.com/Financial-Times/kafka-client-go v0.0.0-20181214120216-c3a1941e42a4/go
 github.com/Financial-Times/neo-model-utils-go v0.0.0-20180712095719-aea1e95c8305 h1:ob+VRuAq7QGfqT4ccoH5Ru0nfnBmjmNgUEaLzXTzUNw=
 github.com/Financial-Times/neo-model-utils-go v0.0.0-20180712095719-aea1e95c8305/go.mod h1:HdCuBcOftPWj3SBix/6H9NbPQpur9F7stSF0MEROMcU=
 github.com/Financial-Times/neo-utils-go v0.0.0-20180807105745-1fe6ae2f38f3/go.mod h1:LF1qICt4PuWDINYtXL4WXU595WTKReIBwV6obcncNBI=
-github.com/Financial-Times/neo-utils-go v0.0.0-20181119150836-7fc6c3f7b78f h1:OSAi1EQx/JH201+Yw465BZEpAqickhoDoyN0l3fJMQw=
-github.com/Financial-Times/neo-utils-go v0.0.0-20181119150836-7fc6c3f7b78f/go.mod h1:LF1qICt4PuWDINYtXL4WXU595WTKReIBwV6obcncNBI=
-github.com/Financial-Times/neo-utils-go v0.0.0-20200128081624-16a5a28c95a7 h1:q1rhMCbANqmMChWqwuR1ynHNV22hVTDesopJzlUqvMI=
-github.com/Financial-Times/neo-utils-go v0.0.0-20200128081624-16a5a28c95a7/go.mod h1:LF1qICt4PuWDINYtXL4WXU595WTKReIBwV6obcncNBI=
+github.com/Financial-Times/neo-utils-go v0.0.0-20200131083751-caf9d212b521 h1:gLoRRi38oq9M7/0FfnqefWazlqnTAD+QG/eFvNzg5eA=
+github.com/Financial-Times/neo-utils-go v0.0.0-20200131083751-caf9d212b521/go.mod h1:LF1qICt4PuWDINYtXL4WXU595WTKReIBwV6obcncNBI=
 github.com/Financial-Times/service-status-go v0.0.0-20160323111542-3f5199736a3d h1:USNBTIof6vWGM49SYrxvC5Y8NqyDL3YuuYmID81ORZQ=
 github.com/Financial-Times/service-status-go v0.0.0-20160323111542-3f5199736a3d/go.mod h1:7zULC9rrq6KxFkpB3Y5zNVaEwrf1g2m3dvXJBPDXyvM=
 github.com/Financial-Times/transactionid-utils-go v0.2.0 h1:YcET5Hd1fUGWWpQSVszYUlAc15ca8tmjRetUuQKRqEQ=
