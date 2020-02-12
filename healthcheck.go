@@ -9,7 +9,8 @@ import (
 	"github.com/Financial-Times/concept-exporter/concept"
 	"github.com/Financial-Times/concept-exporter/db"
 	health "github.com/Financial-Times/go-fthealth/v1_1"
-	"github.com/Financial-Times/neo-utils-go/neoutils"
+	"github.com/Financial-Times/go-logger/v2"
+	"github.com/Financial-Times/neo-utils-go/v2/neoutils"
 	"github.com/Financial-Times/service-status-go/gtg"
 )
 
@@ -21,6 +22,7 @@ type healthService struct {
 	client  *http.Client
 	conn    neoutils.NeoConnection
 	connErr error
+	log     *logger.UPPLogger
 }
 
 type healthConfig struct {
@@ -53,7 +55,8 @@ func newHealthService(config *healthConfig) *healthService {
 	conf.HTTPClient.Timeout = 3 * time.Second
 	conf.HTTPClient.Transport.(*http.Transport).IdleConnTimeout = 3 * time.Second
 	conf.HTTPClient.Transport.(*http.Transport).ResponseHeaderTimeout = 3 * time.Second
-	svc.conn, svc.connErr = neoutils.Connect(config.neoService.NeoURL, conf)
+	svc.log = logger.NewUPPInfoLogger("concept-exporter")
+	svc.conn, svc.connErr = neoutils.Connect(config.neoService.NeoURL, conf, svc.log)
 
 	return svc
 }
