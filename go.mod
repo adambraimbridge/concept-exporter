@@ -13,6 +13,7 @@ require (
 	github.com/Financial-Times/http-handlers-go/v2 v2.1.0
 	github.com/Financial-Times/neo-model-utils-go v0.0.0-20180712095719-aea1e95c8305
 	github.com/Financial-Times/neo-utils-go v0.0.0-20180807105745-1fe6ae2f38f3
+	github.com/Financial-Times/neo-utils-go/v2 v2.0.0-migrate-to-go-logger-v2-rc1
 	github.com/Financial-Times/service-status-go v0.0.0-20160323111542-3f5199736a3d
 	github.com/Financial-Times/transactionid-utils-go v0.2.0
 	github.com/cyberdelia/go-metrics-graphite v0.0.0-20161219230853-39f87cc3b432 // indirect
@@ -26,7 +27,6 @@ require (
 	github.com/pkg/errors v0.8.1-0.20171018195549-f15c970de5b7
 	github.com/rcrowley/go-metrics v0.0.0-20190826022208-cac0b30c2563
 	github.com/sethgrid/pester v0.0.0-20190127155807-68a33a018ad0
-	github.com/sirupsen/logrus v1.2.0 // indirect
 	github.com/stretchr/testify v1.3.0
 	go4.org v0.0.0-20191010144846-132d2879e1e9 // indirect
 	golang.org/x/net v0.0.0-20191119073136-fc4aabc6c914 // indirect
