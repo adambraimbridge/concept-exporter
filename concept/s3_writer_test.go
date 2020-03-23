@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"testing"
 
 	"github.com/gorilla/mux"
@@ -96,8 +97,9 @@ func TestS3UpdaterUploadContentWithErrorOnNewRequest(t *testing.T) {
 	updater := NewS3Updater("://")
 
 	err := updater.Upload([]byte("test"), "Brand.csv", "tid_1234")
-	assert.Error(t, err)
-	assert.Equal(t, "parse :///concept/Brand.csv: missing protocol scheme", err.Error())
+	var urlError *url.Error
+	assert.True(t, errors.As(err, &urlError))
+	assert.Equal(t, err.(*url.Error).Op, "parse")
 }
 
 func TestS3UpdaterUploadContentErrorOnRequestDo(t *testing.T) {
@@ -146,8 +148,8 @@ func TestS3UpdaterCheckHealthErrorOnNewRequest(t *testing.T) {
 	}
 
 	resp, err := updater.CheckHealth(&http.Client{})
-	assert.Error(t, err)
-	assert.Equal(t, "parse ://: missing protocol scheme", err.Error())
+	var urlError *url.Error
+	assert.True(t, errors.As(err, &urlError))
 	assert.Equal(t, "Error in building request to check if the S3 Writer is good to go", resp)
 }
 
