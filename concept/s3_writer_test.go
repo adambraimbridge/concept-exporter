@@ -97,7 +97,7 @@ func TestS3UpdaterUploadContentWithErrorOnNewRequest(t *testing.T) {
 
 	err := updater.Upload([]byte("test"), "Brand.csv", "tid_1234")
 	assert.Error(t, err)
-	assert.Equal(t, "parse :///concept/Brand.csv: missing protocol scheme", err.Error())
+	assert.Equal(t, "parse \":///concept/Brand.csv\": missing protocol scheme", err.Error())
 }
 
 func TestS3UpdaterUploadContentErrorOnRequestDo(t *testing.T) {
@@ -147,7 +147,7 @@ func TestS3UpdaterCheckHealthErrorOnNewRequest(t *testing.T) {
 
 	resp, err := updater.CheckHealth(&http.Client{})
 	assert.Error(t, err)
-	assert.Equal(t, "parse ://: missing protocol scheme", err.Error())
+	assert.Equal(t, "parse \"://\": missing protocol scheme", err.Error())
 	assert.Equal(t, "Error in building request to check if the S3 Writer is good to go", resp)
 }
 
