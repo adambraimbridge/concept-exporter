@@ -119,12 +119,13 @@ func (fe *FullExporter) setJobFailed(cType string) {
 }
 
 func (fe *FullExporter) RunFullExport(tid string) {
+	logEntry := fe.Log.WithTransactionID(tid)
 	if fe.job == nil || fe.job.Status != concept.STARTING {
-		fe.Log.WithField("transaction_id", tid).Error("No job to be run")
+		logEntry.Error("No job to be run")
 		return
 	}
 
-	fe.Log.Infof("Job started: %v", fe.job.ID)
+	logEntry.Infof("Job started: %v", fe.job.ID)
 	fe.setJobStatus(concept.RUNNING)
 	defer func() {
 		fe.setJobStatus(concept.FINISHED)
@@ -133,7 +134,7 @@ func (fe *FullExporter) RunFullExport(tid string) {
 
 	err := fe.Exporter.Prepare(fe.job.Concepts)
 	if err != nil {
-		fe.Log.WithField("transaction_id", tid).Errorf("Preparing CSV writer failed: %v", err.Error())
+		logEntry.Errorf("Preparing CSV writer failed: %v", err.Error())
 		fe.setJobErrorMessage(fmt.Sprintf("%s %s", fe.job.ErrorMessage, err.Error()))
 		return
 	}
@@ -175,7 +176,7 @@ func (fe *FullExporter) runExport(worker *concept.Worker, tid string) {
 			if !ok {
 				err := fe.Updater.Upload(fe.Exporter.GetBytes(worker.ConceptType), fe.Exporter.GetFileName(worker.ConceptType), tid)
 				if err != nil {
-					fe.Log.WithField("transaction_id", tid).Errorf("Upload to S3 Writer failed: %v", err)
+					fe.Log.WithTransactionID(tid).Errorf("Upload to S3 Writer failed: %v", err)
 					fe.setJobFailed(worker.ConceptType)
 					fe.setWorkerErrorMessage(worker, fmt.Sprintf("%s %s", worker.ErrorMessage, err.Error()))
 				}

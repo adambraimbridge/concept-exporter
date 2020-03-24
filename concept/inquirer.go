@@ -59,23 +59,24 @@ func (n *NeoInquirer) Inquire(candidates []string, tid string) []*Worker {
 		workers = append(workers, worker)
 	}
 	go func() {
-		n.Log.WithField("transaction_id", tid).Infof("Starting reading concepts from Neo: %v", candidates)
+		logEntry := n.Log.WithTransactionID(tid)
+		logEntry.Infof("Starting reading concepts from Neo: %v", candidates)
 		for _, worker := range workers {
 			count, found, err := n.Neo.Read(worker.ConceptType, worker.ConceptCh)
 			if err != nil {
-				n.Log.WithField("transaction_id", tid).Errorf("Error by reading %v concept type from Neo: %+v", worker.ConceptType, err)
+				logEntry.Errorf("Error by reading %v concept type from Neo: %+v", worker.ConceptType, err)
 				worker.Errch <- err
 				continue
 			}
 			if !found {
-				n.Log.WithField("transaction_id", tid).Errorf("Reading %v concept type from Neo returned empty result", worker.ConceptType)
+				logEntry.Errorf("Reading %v concept type from Neo returned empty result", worker.ConceptType)
 				worker.Errch <- fmt.Errorf("Reading %v concept type from Neo returned empty result", worker.ConceptType)
 				continue
 			}
-			n.Log.WithField("transaction_id", tid).Infof("Found %v entries for %v concept", count, worker.ConceptType)
+			logEntry.Infof("Found %v entries for %v concept", count, worker.ConceptType)
 			worker.setCount(count)
 		}
-		n.Log.WithField("transaction_id", tid).Info("Finished Neo read")
+		logEntry.Info("Finished Neo read")
 	}()
 	return workers
 }

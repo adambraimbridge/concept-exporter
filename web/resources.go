@@ -30,6 +30,8 @@ func NewRequestHandler(fullExporter *export.FullExporter, conceptTypes []string,
 func (handler *RequestHandler) GetJob(writer http.ResponseWriter, request *http.Request) {
 	defer request.Body.Close()
 
+	tid := transactionidutils.GetTransactionIDFromRequest(request)
+
 	writer.Header().Add("Content-Type", "application/json")
 
 	job := handler.Exporter.GetCurrentJob()
@@ -37,7 +39,7 @@ func (handler *RequestHandler) GetJob(writer http.ResponseWriter, request *http.
 	err := json.NewEncoder(writer).Encode(&job)
 	if err != nil {
 		msg := fmt.Sprintf(`Failed to write job %v to response writer: "%v"`, job.ID, err)
-		handler.Log.Warn(msg)
+		handler.Log.WithTransactionID(tid).Warn(msg)
 		fmt.Fprintf(writer, "{\"ID\": \"%v\"}", job.ID)
 		return
 	}
@@ -52,26 +54,26 @@ func (handler *RequestHandler) Export(writer http.ResponseWriter, request *http.
 		http.Error(writer, "There are already running export jobs. Please wait them to finish", http.StatusBadRequest)
 		return
 	}
-	candidates, errMsg := handler.getCandidateConceptTypes(request, tid)
+	candidates, err := handler.getCandidateConceptTypes(request, tid)
 	if len(candidates) == 0 {
 		http.Error(writer, "No valid candidate concept types in the request", http.StatusBadRequest)
 		return
 	}
-	job := handler.Exporter.CreateJob(candidates, errMsg)
+	job := handler.Exporter.CreateJob(candidates, err.Error())
 	go handler.Exporter.RunFullExport(tid)
 	writer.WriteHeader(http.StatusAccepted)
 	writer.Header().Add("Content-Type", "application/json")
 
-	err := json.NewEncoder(writer).Encode(&job)
+	err = json.NewEncoder(writer).Encode(&job)
 	if err != nil {
 		msg := fmt.Sprintf(`Failed to write job %v to response writer: "%v"`, job.ID, err)
-		handler.Log.Warn(msg)
+		handler.Log.WithTransactionID(tid).Warnf(msg)
 		fmt.Fprintf(writer, "{\"ID\": \"%v\"}", job.ID)
 		return
 	}
 }
 
-func (handler *RequestHandler) getCandidateConceptTypes(request *http.Request, tid string) (candidates []string, errMsg string) {
+func (handler *RequestHandler) getCandidateConceptTypes(request *http.Request, tid string) (candidates []string, err error) {
 	candidates = extractCandidateConceptTypesFromRequest(request)
 	if candidates != nil && len(candidates) != 0 {
 		var unsupported []string
@@ -89,14 +91,14 @@ func (handler *RequestHandler) getCandidateConceptTypes(request *http.Request, t
 			}
 		}
 		if len(unsupported) != 0 {
-			errMsg = fmt.Sprintf("There are unsupported concept types within the candidates: %v", unsupported)
+			err = fmt.Errorf("there are unsupported concept types within the candidates: %v", unsupported)
 		}
 		if len(candidates) == 0 {
 			return
 		}
 	}
 	if candidates == nil || len(candidates) == 0 {
-		handler.Log.WithField("transaction_id", tid).Infof("Content type candidates are empty. Using all supported ones: %v", handler.ConceptTypes)
+		handler.Log.WithTransactionID(tid).Infof("Content type candidates are empty. Using all supported ones: %v", handler.ConceptTypes)
 		candidates = handler.ConceptTypes
 	}
 	return
@@ -107,26 +109,25 @@ func extractCandidateConceptTypesFromRequest(request *http.Request) (candidates 
 	var result map[string]interface{}
 	body, err := ioutil.ReadAll(request.Body)
 	if err != nil {
-		log.Debugf("No valid POST body found, thus no candidate concept types to export. Parsing error: %v", err)
+		log.WithError(err).Fatal("no valid POST body found, thus no candidate concept types to export")
 		return
 	}
 
 	if err = json.Unmarshal(body, &result); err != nil {
-		log.Debugf("No valid json body found, thus no candidate concept types to export. Parsing error: %v", err)
+		log.WithError(err).Fatal("no valid JSON body found, thus no candidate concept types to export")
 		return
 	}
-	log.Infof("DEBUG Parsing request body: %v", result)
+	log.Debugf("Parsing request body: %v", result)
 	cTypes, ok := result["conceptTypes"]
 	if !ok {
-		log.Infof("No conceptTypes field found in json body, thus no candidate concept types to export.")
+		log.Infof("no conceptTypes field found in the JSON body, thus no candidate concept types to export.")
 		return
 	}
 	cTypesString, ok := cTypes.(string)
 	if ok {
 		candidates = strings.Split(cTypesString, " ")
 	} else {
-		log.Infof("The conceptTypes field found in json body is not a string as expected.")
+		log.WithError(err).Fatal("the conceptTypes field found in JSON body is not a string as expected.")
 	}
-
 	return
 }
