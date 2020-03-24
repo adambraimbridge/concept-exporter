@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"net"
 	"net/http"
 	"os"
@@ -168,7 +169,10 @@ func serveEndpoints(appSystemCode string, appName string, port string, requestHa
 	waitForSignal()
 	log.Infof("[Shutdown] concept-exporter is shutting down")
 
-	if err := server.Close(); err != nil {
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
+
+	if err := server.Shutdown(ctx); err != nil {
 		log.Errorf("Unable to stop HTTP server: %v", err)
 	}
 	wg.Wait()
