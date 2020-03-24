@@ -110,19 +110,15 @@ func main() {
 		fullExporter := export.NewFullExporter(30, uploader, concept.NewNeoInquirer(neoService, log),
 			export.NewCsvExporter(), log)
 
-		go func() {
-			healthService := newHealthService(
-				&healthConfig{
-					appSystemCode: *appSystemCode,
-					appName:       *appName,
-					port:          *port,
-					s3Uploader:    uploader,
-					neoService:    neoService,
-				})
-			serveEndpoints(*appSystemCode, *appName, *port, web.NewRequestHandler(fullExporter, *conceptTypes, log), healthService, log)
-		}()
-
-		waitForSignal()
+		healthService := newHealthService(
+			&healthConfig{
+				appSystemCode: *appSystemCode,
+				appName:       *appName,
+				port:          *port,
+				s3Uploader:    uploader,
+				neoService:    neoService,
+			})
+		serveEndpoints(*appSystemCode, *appName, *port, web.NewRequestHandler(fullExporter, *conceptTypes, log), healthService, log)
 	}
 	err := app.Run(os.Args)
 	if err != nil {
