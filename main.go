@@ -1,11 +1,11 @@
 package main
 
 import (
+	"context"
 	"net"
 	"net/http"
 	"os"
 	"os/signal"
-	"sync"
 	"syscall"
 	"time"
 
@@ -78,7 +78,7 @@ func main() {
 		EnvVar: "LOG_LEVEL",
 	})
 
-	log := logger.NewUPPLogger("APP_NAME", *logLevel)
+	log := logger.NewUPPLogger(*appName, *logLevel)
 
 	app.Action = func() {
 		log.WithField("service_name", *appName).Info("Service started")
@@ -156,23 +156,21 @@ func serveEndpoints(appSystemCode string, appName string, port string, requestHa
 		IdleTimeout:  60 * time.Second,
 	}
 
-	wg := sync.WaitGroup{}
-
-	wg.Add(1)
 	go func() {
-		if err := server.ListenAndServe(); err != nil {
+		if err := server.ListenAndServe(); err != http.ErrServerClosed {
 			log.Infof("HTTP server closing with message: %v", err)
 		}
-		wg.Done()
 	}()
 
 	waitForSignal()
 	log.Infof("[Shutdown] concept-exporter is shutting down")
 
-	if err := server.Close(); err != nil {
-		log.Errorf("Unable to stop HTTP server: %v", err)
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
+
+	if err := server.Shutdown(ctx); err != nil {
+		log.Errorf("unable to stop HTTP server: %v", err)
 	}
-	wg.Wait()
 }
 
 func waitForSignal() {
