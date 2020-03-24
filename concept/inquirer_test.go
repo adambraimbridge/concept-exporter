@@ -60,7 +60,7 @@ func TestNeoInquirer_InquireSuccessfullyWithEmptyResult(t *testing.T) {
 	assert.Equal(t, 0, workers[0].GetCount())
 	assert.Equal(t, STARTING, workers[0].Status)
 	assert.Equal(t, 1, len(workers[0].Errch))
-	assert.Equal(t, fmt.Sprintf("Reading %v concept type from Neo returned empty result", cType), (<-workers[0].Errch).Error())
+	assert.Equal(t, fmt.Sprintf("reading %v concept type from Neo returned empty result", cType), (<-workers[0].Errch).Error())
 	mockDb.AssertExpectations(t)
 }
 

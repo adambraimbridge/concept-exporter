@@ -78,10 +78,10 @@ func main() {
 		EnvVar: "LOG_LEVEL",
 	})
 
-	log := logger.NewUPPLogger("concept-exporter", *logLevel)
+	log := logger.NewUPPLogger("APP_NAME", *logLevel)
 
 	app.Action = func() {
-		log.WithField("event", "service_started").WithField("service_name", *appName).Info("Service started")
+		log.WithField("service_name", *appName).Info("Service started")
 		conf := neoutils.DefaultConnectionConfig()
 		conf.HTTPClient.Timeout = 10 * time.Minute
 		neoConn, err := neoutils.Connect(*neoURL, conf, log)
