@@ -28,8 +28,6 @@ func NewRequestHandler(fullExporter *export.FullExporter, conceptTypes []string,
 }
 
 func (handler *RequestHandler) GetJob(writer http.ResponseWriter, request *http.Request) {
-	defer request.Body.Close()
-
 	writer.Header().Add("Content-Type", "application/json")
 
 	job := handler.Exporter.GetCurrentJob()
@@ -45,8 +43,6 @@ func (handler *RequestHandler) GetJob(writer http.ResponseWriter, request *http.
 }
 
 func (handler *RequestHandler) Export(writer http.ResponseWriter, request *http.Request) {
-	defer request.Body.Close()
-
 	tid := transactionidutils.GetTransactionIDFromRequest(request)
 
 	if handler.Exporter.IsRunningJob() {
