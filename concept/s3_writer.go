@@ -3,9 +3,9 @@ package concept
 import (
 	"bytes"
 	"fmt"
-	"net/http"
-	"io/ioutil"
 	"io"
+	"io/ioutil"
+	"net/http"
 )
 
 const s3WriterPath = "/concept/"

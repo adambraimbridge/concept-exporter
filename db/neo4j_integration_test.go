@@ -14,7 +14,8 @@ import (
 	"github.com/Financial-Times/base-ft-rw-app-go/baseftrwapp"
 	"github.com/Financial-Times/concepts-rw-neo4j/concepts"
 	"github.com/Financial-Times/content-rw-neo4j/content"
-	"github.com/Financial-Times/neo-utils-go/neoutils"
+	"github.com/Financial-Times/go-logger/v2"
+	"github.com/Financial-Times/neo-utils-go/v2/neoutils"
 	"github.com/jmcvetta/neoism"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -33,6 +34,7 @@ const (
 var allUUIDs = []string{contentUUID, brandParentUUID, brandChildUUID, brandGrandChildUUID, financialInstrumentUUID, companyUUID, organisationUUID}
 
 func getDatabaseConnection(t *testing.T) neoutils.NeoConnection {
+	l := logger.NewUPPLogger("test-concept-exporter", "PANIC")
 	if testing.Short() {
 		t.Skip("Neo4j integration for long tests only.")
 	}
@@ -43,7 +45,7 @@ func getDatabaseConnection(t *testing.T) neoutils.NeoConnection {
 
 	conf := neoutils.DefaultConnectionConfig()
 	conf.Transactional = false
-	conn, err := neoutils.Connect(url, conf)
+	conn, err := neoutils.Connect(url, conf, l)
 	assert.NoError(t, err, "Failed to connect to Neo4j")
 	return conn
 }

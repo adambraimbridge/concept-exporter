@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/Financial-Times/concept-exporter/db"
+	"github.com/Financial-Times/go-logger/v2"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -21,8 +22,10 @@ func (m *mockDbService) Read(conceptType string, conceptCh chan db.Concept) (int
 }
 
 func TestNeoInquirer_InquireSuccessfully(t *testing.T) {
+	log := logger.NewUPPLogger("Test", "PANIC")
+
 	mockDb := new(mockDbService)
-	inquirer := NewNeoInquirer(mockDb)
+	inquirer := NewNeoInquirer(mockDb, log)
 
 	cType := "Brand"
 	mockDb.On("Read", cType, mock.AnythingOfType("chan db.Concept")).Return(2, true, nil)
@@ -40,8 +43,10 @@ func TestNeoInquirer_InquireSuccessfully(t *testing.T) {
 }
 
 func TestNeoInquirer_InquireSuccessfullyWithEmptyResult(t *testing.T) {
+	log := logger.NewUPPLogger("Test", "PANIC")
+
 	mockDb := new(mockDbService)
-	inquirer := NewNeoInquirer(mockDb)
+	inquirer := NewNeoInquirer(mockDb, log)
 
 	cType := "Brand"
 	mockDb.On("Read", cType, mock.AnythingOfType("chan db.Concept")).Return(0, false, nil)
@@ -55,13 +60,15 @@ func TestNeoInquirer_InquireSuccessfullyWithEmptyResult(t *testing.T) {
 	assert.Equal(t, 0, workers[0].GetCount())
 	assert.Equal(t, STARTING, workers[0].Status)
 	assert.Equal(t, 1, len(workers[0].Errch))
-	assert.Equal(t, fmt.Sprintf("Reading %v concept type from Neo returned empty result", cType), (<-workers[0].Errch).Error())
+	assert.Equal(t, fmt.Sprintf("reading %v concept type from Neo returned empty result", cType), (<-workers[0].Errch).Error())
 	mockDb.AssertExpectations(t)
 }
 
 func TestNeoInquirer_InquireWithError(t *testing.T) {
+	log := logger.NewUPPLogger("Test", "PANIC")
+
 	mockDb := new(mockDbService)
-	inquirer := NewNeoInquirer(mockDb)
+	inquirer := NewNeoInquirer(mockDb, log)
 
 	cType := "Brand"
 	mockDb.On("Read", cType, mock.AnythingOfType("chan db.Concept")).Return(0, false, errors.New("Neo err"))

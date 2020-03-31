@@ -1,11 +1,11 @@
 package main
 
 import (
+	"context"
 	"net"
 	"net/http"
 	"os"
 	"os/signal"
-	"sync"
 	"syscall"
 	"time"
 
@@ -14,14 +14,14 @@ import (
 	"github.com/Financial-Times/concept-exporter/export"
 	"github.com/Financial-Times/concept-exporter/web"
 	health "github.com/Financial-Times/go-fthealth/v1_1"
-	"github.com/Financial-Times/http-handlers-go/httphandlers"
-	"github.com/Financial-Times/neo-utils-go/neoutils"
+	"github.com/Financial-Times/go-logger/v2"
+	"github.com/Financial-Times/http-handlers-go/v2/httphandlers"
+	"github.com/Financial-Times/neo-utils-go/v2/neoutils"
 	status "github.com/Financial-Times/service-status-go/httphandlers"
 	"github.com/gorilla/mux"
 	cli "github.com/jawher/mow.cli"
 	"github.com/rcrowley/go-metrics"
 	"github.com/sethgrid/pester"
-	log "github.com/sirupsen/logrus"
 )
 
 const appDescription = "Exports concept from a data source (Neo4j) and sends it to S3"
@@ -71,15 +71,20 @@ func main() {
 		Desc:   "Concept types to support",
 		EnvVar: "CONCEPT_TYPES",
 	})
+	logLevel := app.String(cli.StringOpt{
+		Name:   "log-level",
+		Value:  "info",
+		Desc:   "Log level for the service",
+		EnvVar: "LOG_LEVEL",
+	})
 
-	log.SetLevel(log.InfoLevel)
-	log.Infof("[Startup] concept-exporter is starting ")
+	log := logger.NewUPPLogger(*appName, *logLevel)
 
 	app.Action = func() {
-		log.WithField("event", "service_started").WithField("service_name", *appName).Info("Service started")
+		log.WithField("service_name", *appName).Info("Service started")
 		conf := neoutils.DefaultConnectionConfig()
 		conf.HTTPClient.Timeout = 10 * time.Minute
-		neoConn, err := neoutils.Connect(*neoURL, conf)
+		neoConn, err := neoutils.Connect(*neoURL, conf, log)
 
 		if err != nil {
 			log.Fatalf("Can't connect to neo4j, error=[%s]\n", err)
@@ -102,22 +107,19 @@ func main() {
 
 		uploader := &concept.S3Updater{Client: client, S3WriterBaseURL: *s3WriterBaseURL, S3WriterHealthURL: *s3WriterHealthURL}
 		neoService := db.NewNeoService(neoConn, *neoURL)
-		fullExporter := export.NewFullExporter(30, uploader, concept.NewNeoInquirer(neoService),
-			export.NewCsvExporter())
+		fullExporter := export.NewFullExporter(30, uploader, concept.NewNeoInquirer(neoService, log),
+			export.NewCsvExporter(), log)
 
-		go func() {
-			healthService := newHealthService(
-				&healthConfig{
-					appSystemCode: *appSystemCode,
-					appName:       *appName,
-					port:          *port,
-					s3Uploader:    uploader,
-					neoService:    neoService,
-				})
-			serveEndpoints(*appSystemCode, *appName, *port, web.NewRequestHandler(fullExporter, *conceptTypes), healthService)
-		}()
-
-		waitForSignal()
+		healthService := newHealthService(
+			&healthConfig{
+				appSystemCode: *appSystemCode,
+				appName:       *appName,
+				port:          *port,
+				s3Uploader:    uploader,
+				neoService:    neoService,
+				log:           log,
+			})
+		serveEndpoints(*appSystemCode, *appName, *port, web.NewRequestHandler(fullExporter, *conceptTypes, log), healthService, log)
 	}
 	err := app.Run(os.Args)
 	if err != nil {
@@ -127,7 +129,7 @@ func main() {
 }
 
 func serveEndpoints(appSystemCode string, appName string, port string, requestHandler *web.RequestHandler,
-	healthService *healthService) {
+	healthService *healthService, log *logger.UPPLogger) {
 
 	serveMux := http.NewServeMux()
 
@@ -142,7 +144,7 @@ func serveEndpoints(appSystemCode string, appName string, port string, requestHa
 	servicesRouter.HandleFunc("/job", requestHandler.GetJob).Methods(http.MethodGet)
 
 	var monitoringRouter http.Handler = servicesRouter
-	monitoringRouter = httphandlers.TransactionAwareRequestLoggingHandler(log.StandardLogger(), monitoringRouter)
+	monitoringRouter = httphandlers.TransactionAwareRequestLoggingHandler(log, monitoringRouter)
 	monitoringRouter = httphandlers.HTTPMetricsHandler(metrics.DefaultRegistry, monitoringRouter)
 
 	serveMux.Handle("/", monitoringRouter)
@@ -154,23 +156,21 @@ func serveEndpoints(appSystemCode string, appName string, port string, requestHa
 		IdleTimeout:  60 * time.Second,
 	}
 
-	wg := sync.WaitGroup{}
-
-	wg.Add(1)
 	go func() {
-		if err := server.ListenAndServe(); err != nil {
+		if err := server.ListenAndServe(); err != http.ErrServerClosed {
 			log.Infof("HTTP server closing with message: %v", err)
 		}
-		wg.Done()
 	}()
 
 	waitForSignal()
 	log.Infof("[Shutdown] concept-exporter is shutting down")
 
-	if err := server.Close(); err != nil {
-		log.Errorf("Unable to stop HTTP server: %v", err)
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
+
+	if err := server.Shutdown(ctx); err != nil {
+		log.Errorf("unable to stop HTTP server: %v", err)
 	}
-	wg.Wait()
 }
 
 func waitForSignal() {

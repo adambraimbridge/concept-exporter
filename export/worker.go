@@ -5,13 +5,12 @@ import (
 	"sync"
 
 	"github.com/Financial-Times/concept-exporter/concept"
+	"github.com/Financial-Times/go-logger/v2"
 	"github.com/pborman/uuid"
-	log "github.com/sirupsen/logrus"
 )
 
 type Job struct {
 	sync.RWMutex
-	wg           sync.WaitGroup
 	NrWorker     int               `json:"-"`
 	Workers      []*concept.Worker `json:"ConceptWorkers,omitempty"`
 	ID           string            `json:"ID"`
@@ -22,25 +21,27 @@ type Job struct {
 	ErrorMessage string            `json:"ErrorMessage,omitempty"`
 }
 
-type Service struct {
+type FullExporter struct {
 	sync.RWMutex
 	job                   *Job
 	NrOfConcurrentWorkers int
 	Updater               concept.Updater
 	Inquirer              concept.Inquirer
 	Exporter              *CsvExporter
+	Log                   *logger.UPPLogger
 }
 
-func NewFullExporter(nrOfWorkers int, exporter concept.Updater, inquirer concept.Inquirer, csvExporter *CsvExporter) *Service {
-	return &Service{
+func NewFullExporter(nrOfWorkers int, exporter concept.Updater, inquirer concept.Inquirer, csvExporter *CsvExporter, log *logger.UPPLogger) *FullExporter {
+	return &FullExporter{
 		NrOfConcurrentWorkers: nrOfWorkers,
 		Updater:               exporter,
 		Inquirer:              inquirer,
 		Exporter:              csvExporter,
+		Log:                   log,
 	}
 }
 
-func (fe *Service) IsRunningJob() bool {
+func (fe *FullExporter) IsRunningJob() bool {
 	fe.Lock()
 	defer fe.Unlock()
 	if fe.job == nil {
@@ -49,7 +50,7 @@ func (fe *Service) IsRunningJob() bool {
 	return fe.job.Status == concept.RUNNING
 }
 
-func (fe *Service) GetCurrentJob() Job {
+func (fe *FullExporter) GetCurrentJob() Job {
 	fe.Lock()
 	defer fe.Unlock()
 	if fe.job == nil {
@@ -58,7 +59,7 @@ func (fe *Service) GetCurrentJob() Job {
 	return fe.getJob()
 }
 
-func (fe *Service) getJob() Job {
+func (fe *FullExporter) getJob() Job {
 	var workers []*concept.Worker
 	for _, w := range fe.job.Workers {
 		workers = append(workers, &concept.Worker{
@@ -80,59 +81,60 @@ func (fe *Service) getJob() Job {
 	}
 }
 
-func (fe *Service) CreateJob(candidates []string, errMsg string) Job {
+func (fe *FullExporter) CreateJob(candidates []string, errMsg string) Job {
 	fe.Lock()
 	defer fe.Unlock()
 	fe.job = &Job{ID: "job_" + uuid.New(), NrWorker: fe.NrOfConcurrentWorkers, Status: concept.STARTING, Concepts: candidates, ErrorMessage: errMsg}
 	return fe.getJob()
 }
 
-func (fe *Service) setJobStatus(state concept.State) {
+func (fe *FullExporter) setJobStatus(state concept.State) {
 	fe.Lock()
 	defer fe.Unlock()
 	fe.job.Status = state
 }
 
-func (fe *Service) setJobWorkers(workers []*concept.Worker) {
+func (fe *FullExporter) setJobWorkers(workers []*concept.Worker) {
 	fe.Lock()
 	defer fe.Unlock()
 	fe.job.Workers = workers
 }
 
-func (fe *Service) setJobErrorMessage(msg string) {
+func (fe *FullExporter) setJobErrorMessage(msg string) {
 	fe.Lock()
 	defer fe.Unlock()
 	fe.job.ErrorMessage = msg
 }
 
-func (fe *Service) setJobProgress(cType string) {
+func (fe *FullExporter) setJobProgress(cType string) {
 	fe.Lock()
 	defer fe.Unlock()
 	fe.job.Progress = append(fe.job.Progress, cType)
 }
 
-func (fe *Service) setJobFailed(cType string) {
+func (fe *FullExporter) setJobFailed(cType string) {
 	fe.Lock()
 	defer fe.Unlock()
 	fe.job.Failed = append(fe.job.Failed, cType)
 }
 
-func (fe *Service) RunFullExport(tid string) {
+func (fe *FullExporter) RunFullExport(tid string) {
+	logEntry := fe.Log.WithTransactionID(tid)
 	if fe.job == nil || fe.job.Status != concept.STARTING {
-		log.WithField("transaction_id", tid).Error("No job to be run")
+		logEntry.Error("No job to be run")
 		return
 	}
 
-	log.Infof("Job started: %v", fe.job.ID)
+	logEntry.Infof("Job started: %v", fe.job.ID)
 	fe.setJobStatus(concept.RUNNING)
 	defer func() {
 		fe.setJobStatus(concept.FINISHED)
-		log.Infof("Finished job %v with failed concept(s): %v, progress: %v", fe.job.ID, fe.job.Failed, fe.job.Progress)
+		logEntry.Infof("Finished job %v with failed concept(s): %v, progress: %v", fe.job.ID, fe.job.Failed, fe.job.Progress)
 	}()
 
 	err := fe.Exporter.Prepare(fe.job.Concepts)
 	if err != nil {
-		log.WithField("transaction_id", tid).Errorf("Preparing CSV writer failed: %v", err.Error())
+		logEntry.Errorf("Preparing CSV writer failed: %v", err.Error())
 		fe.setJobErrorMessage(fmt.Sprintf("%s %s", fe.job.ErrorMessage, err.Error()))
 		return
 	}
@@ -144,25 +146,25 @@ func (fe *Service) RunFullExport(tid string) {
 	}
 }
 
-func (fe *Service) setWorkerState(worker *concept.Worker, state concept.State) {
+func (fe *FullExporter) setWorkerState(worker *concept.Worker, state concept.State) {
 	fe.Lock()
 	defer fe.Unlock()
 	worker.Status = state
 }
 
-func (fe *Service) setWorkerErrorMessage(worker *concept.Worker, msg string) {
+func (fe *FullExporter) setWorkerErrorMessage(worker *concept.Worker, msg string) {
 	fe.Lock()
 	defer fe.Unlock()
 	worker.ErrorMessage = msg
 }
 
-func (fe *Service) incWorkerProgress(worker *concept.Worker) {
+func (fe *FullExporter) incWorkerProgress(worker *concept.Worker) {
 	fe.Lock()
 	defer fe.Unlock()
 	worker.Progress++
 }
 
-func (fe *Service) runExport(worker *concept.Worker, tid string) {
+func (fe *FullExporter) runExport(worker *concept.Worker, tid string) {
 	fe.setWorkerState(worker, concept.RUNNING)
 	defer func() {
 		fe.setWorkerState(worker, concept.FINISHED)
@@ -174,7 +176,7 @@ func (fe *Service) runExport(worker *concept.Worker, tid string) {
 			if !ok {
 				err := fe.Updater.Upload(fe.Exporter.GetBytes(worker.ConceptType), fe.Exporter.GetFileName(worker.ConceptType), tid)
 				if err != nil {
-					log.WithField("transaction_id", tid).Errorf("Upload to S3 Writer failed: %v", err)
+					fe.Log.WithTransactionID(tid).Errorf("Upload to S3 Writer failed: %v", err)
 					fe.setJobFailed(worker.ConceptType)
 					fe.setWorkerErrorMessage(worker, fmt.Sprintf("%s %s", worker.ErrorMessage, err.Error()))
 				}
