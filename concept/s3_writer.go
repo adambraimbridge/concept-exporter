@@ -62,7 +62,7 @@ func (u *S3Updater) CheckHealth(client Client) (string, error) {
 		return "Error in getting request to check if S3 Writer is good to go.", err
 	}
 	defer func() {
-		io.Copy(ioutil.Discard, resp.Body)
+		_, _ = io.Copy(ioutil.Discard, resp.Body)
 		resp.Body.Close()
 	}()
 	if resp.StatusCode != http.StatusOK {
