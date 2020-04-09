@@ -35,7 +35,6 @@ const (
 var allUUIDs = []string{contentUUID, brandParentUUID, brandChildUUID, brandGrandChildUUID, financialInstrumentUUID, companyUUID, organisationUUID}
 
 func getDatabaseConnection(t *testing.T) neoutils.NeoConnection {
-	l := logger.NewUPPLogger("test-concept-exporter", "PANIC")
 	if testing.Short() {
 		t.Skip("Neo4j integration for long tests only.")
 	}
@@ -46,7 +45,7 @@ func getDatabaseConnection(t *testing.T) neoutils.NeoConnection {
 
 	conf := neoutils.DefaultConnectionConfig()
 	conf.Transactional = false
-	conn, err := neoutils.Connect(url, conf, l)
+	conn, err := neoutils.Connect(url, conf, logger.NewUPPLogger("test-concept-exporter", "PANIC"))
 	assert.NoError(t, err, "Failed to connect to Neo4j")
 	return conn
 }
