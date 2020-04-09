@@ -14,7 +14,7 @@ import (
 	"github.com/Financial-Times/base-ft-rw-app-go/baseftrwapp"
 	"github.com/Financial-Times/concepts-rw-neo4j/concepts"
 	"github.com/Financial-Times/content-rw-neo4j/content"
-	"github.com/Financial-Times/go-logger/v2"
+	logger "github.com/Financial-Times/go-logger/v2"
 	"github.com/Financial-Times/neo-utils-go/v2/neoutils"
 	"github.com/jmcvetta/neoism"
 	"github.com/stretchr/testify/assert"
@@ -29,6 +29,7 @@ const (
 	financialInstrumentUUID = "77f613ad-1470-422c-bf7c-1dd4c3fd1693"
 	companyUUID             = "eac853f5-3859-4c08-8540-55e043719400"
 	organisationUUID        = "5d1510f8-2779-4b74-adab-0a5eb138fca6"
+	personUUID              = "b2fa511e-a031-4d52-b37d-72fd290b39ce"
 )
 
 var allUUIDs = []string{contentUUID, brandParentUUID, brandChildUUID, brandGrandChildUUID, financialInstrumentUUID, companyUUID, organisationUUID}
@@ -85,6 +86,78 @@ waitLoop:
 		case <-time.After(3 * time.Second):
 			t.FailNow()
 		}
+	}
+}
+
+func TestNeoService_DoNotReadBrokenConcepts(t *testing.T) {
+	conn := getDatabaseConnection(t)
+	svc := concepts.NewConceptService(conn)
+	assert.NoError(t, svc.Initialise())
+
+	tests := []struct {
+		name                string
+		conceptType         string
+		conceptFixture      string
+		annotationsFixture  string
+		annotationsPlatform string
+		brokenConceptUUID   string
+	}{
+		{
+			name:                "Brands",
+			conceptType:         "Brand",
+			conceptFixture:      fmt.Sprintf("./fixtures/Brand-%s-child.json", brandChildUUID),
+			annotationsFixture:  fmt.Sprintf("./fixtures/Annotations-%s.json", contentUUID),
+			annotationsPlatform: "v1",
+			brokenConceptUUID:   brandChildUUID,
+		},
+		{
+			name:                "Organisations",
+			conceptType:         "Organisation",
+			conceptFixture:      fmt.Sprintf("./fixtures/Organisation-Fakebook-%s.json", companyUUID),
+			annotationsFixture:  fmt.Sprintf("./fixtures/Annotations-%s-org.json", contentUUID),
+			annotationsPlatform: "v2",
+			brokenConceptUUID:   companyUUID,
+		},
+		{
+			name:                "People",
+			conceptType:         "Person",
+			conceptFixture:      fmt.Sprintf("./fixtures/Person-%s.json", personUUID),
+			annotationsFixture:  fmt.Sprintf("./fixtures/Annotations-%s-person.json", contentUUID),
+			annotationsPlatform: "pac",
+			brokenConceptUUID:   personUUID,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			cleanDB(t, conn)
+			writeJSONToConceptService(t, &svc, test.conceptFixture)
+			writeContent(t, conn)
+			writeAnnotation(t, conn, test.annotationsFixture, test.annotationsPlatform)
+
+			// Delete canonical node so we can check that we are not returning broken concepts
+			results := []Concept{}
+			query := &neoism.CypherQuery{
+				Statement: "MATCH (c:Concept{prefUUID:{uuid}}) DETACH DELETE c",
+				Parameters: neoism.Props{
+					"uuid": test.brokenConceptUUID,
+				},
+				Result: &results,
+			}
+			err := conn.CypherBatch([]*neoism.CypherQuery{query})
+			if err != nil {
+				t.Fatalf("Error deleting canonical node: %v", err)
+			}
+
+			neoSvc := NewNeoService(conn, "not-needed")
+
+			conceptCh := make(chan Concept)
+			count, found, err := neoSvc.Read(test.conceptType, conceptCh)
+
+			assert.NoError(t, err, "Error reading from Neo")
+			assert.False(t, found)
+			assert.Equal(t, 0, count)
+		})
 	}
 }
 
@@ -159,6 +232,41 @@ waitLoop:
 			assertListContainsAll(t, []string{"Thing", "Concept", "Organisation", "PublicCompany", "Company"}, c.Labels)
 			assert.Equal(t, "PBLD0EJDB5FWOLXP3B76", c.LeiCode)
 			assert.Equal(t, "BB8000C3P0-R2D2", c.FIGI)
+		case <-time.After(3 * time.Second):
+			t.FailNow()
+		}
+	}
+}
+
+func TestNeoService_ReadPerson(t *testing.T) {
+	conn := getDatabaseConnection(t)
+	svc := concepts.NewConceptService(conn)
+	assert.NoError(t, svc.Initialise())
+
+	cleanDB(t, conn)
+	writeJSONToConceptService(t, &svc, fmt.Sprintf("./fixtures/Person-%s.json", personUUID))
+	writeContent(t, conn)
+	writeAnnotation(t, conn, fmt.Sprintf("./fixtures/Annotations-%s-person.json", contentUUID), "pac")
+	neoSvc := NewNeoService(conn, "not-needed")
+
+	conceptCh := make(chan Concept)
+	count, found, err := neoSvc.Read("Person", conceptCh)
+
+	assert.NoError(t, err, "Error reading from Neo")
+	assert.True(t, found)
+	assert.Equal(t, 1, count)
+waitLoop:
+	for {
+		select {
+		case c, open := <-conceptCh:
+			if !open {
+				break waitLoop
+			}
+			assert.Equal(t, personUUID, c.Uuid)
+			assert.Equal(t, "http://api.ft.com/things/"+personUUID, c.Id)
+			assert.Equal(t, "http://api.ft.com/people/"+personUUID, c.ApiUrl)
+			assert.Equal(t, "Peter Foster", c.PrefLabel)
+			assertListContainsAll(t, []string{"Thing", "Concept", "Person"}, c.Labels)
 		case <-time.After(3 * time.Second):
 			t.FailNow()
 		}
