@@ -1,0 +1,24 @@
+{
+  "prefUUID": "b2fa511e-a031-4d52-b37d-72fd290b39ce",
+  "prefLabel": "Peter Foster",
+  "type": "Person",
+  "aliases": [
+    "Peter Foster"
+  ],
+  "emailAddress": "peter.foster@ft.com",
+  "twitterHandle": "@pmdfoster",
+  "sourceRepresentations": [
+    {
+      "uuid": "b2fa511e-a031-4d52-b37d-72fd290b39ce",
+      "type": "Person",
+      "prefLabel": "Peter Foster",
+      "authority": "Smartlogic",
+      "authorityValue": "b2fa511e-a031-4d52-b37d-72fd290b39ce",
+      "aliases": [
+        "Peter Foster"
+      ],
+      "emailAddress": "peter.foster@ft.com",
+      "twitterHandle": "@pmdfoster"
+    }
+  ]
+}

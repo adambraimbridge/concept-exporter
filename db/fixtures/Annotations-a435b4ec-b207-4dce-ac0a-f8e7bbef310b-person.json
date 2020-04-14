@@ -1,0 +1,28 @@
+[
+  {
+    "thing": {
+      "id": "http://api.ft.com/things/b2fa511e-a031-4d52-b37d-72fd290b39ce",
+      "prefLabel": "Peter Foster",
+      "types": [
+        "Thing",
+        "Concept",
+        "Person"
+      ],
+      "predicate": "hasAuthor"
+    },
+    "provenances": [
+      {
+        "scores": [
+          {
+            "scoringSystem": "http://api.ft.com/scoringsystem/FT-RELEVANCE-SYSTEM",
+            "value": 1
+          },
+          {
+            "scoringSystem": "http://api.ft.com/scoringsystem/FT-CONFIDENCE-SYSTEM",
+            "value": 1
+          }
+        ]
+      }
+    ]
+  }
+]

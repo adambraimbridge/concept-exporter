@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/Financial-Times/concept-exporter/export"
-	"github.com/Financial-Times/go-logger/v2"
+	logger "github.com/Financial-Times/go-logger/v2"
 	transactionidutils "github.com/Financial-Times/transactionid-utils-go"
 )
 
@@ -70,7 +70,7 @@ func (handler *RequestHandler) Export(writer http.ResponseWriter, request *http.
 
 func (handler *RequestHandler) getCandidateConceptTypes(request *http.Request, tid string) (candidates []string, errMsg string) {
 	candidates = extractCandidateConceptTypesFromRequest(request, handler.Log.WithTransactionID(tid))
-	if candidates != nil && len(candidates) != 0 {
+	if len(candidates) != 0 {
 		var unsupported []string
 		for i, cand := range candidates {
 			found := false
@@ -92,7 +92,7 @@ func (handler *RequestHandler) getCandidateConceptTypes(request *http.Request, t
 			return
 		}
 	}
-	if candidates == nil || len(candidates) == 0 {
+	if len(candidates) == 0 {
 		handler.Log.WithTransactionID(tid).Infof("Content type candidates are empty. Using all supported ones: %v", handler.ConceptTypes)
 		candidates = handler.ConceptTypes
 	}

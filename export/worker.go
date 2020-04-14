@@ -5,7 +5,7 @@ import (
 	"sync"
 
 	"github.com/Financial-Times/concept-exporter/concept"
-	"github.com/Financial-Times/go-logger/v2"
+	logger "github.com/Financial-Times/go-logger/v2"
 	"github.com/pborman/uuid"
 )
 
@@ -184,7 +184,10 @@ func (fe *FullExporter) runExport(worker *concept.Worker, tid string) {
 				return
 			}
 			fe.incWorkerProgress(worker)
-			fe.Exporter.Write(c, worker.ConceptType, tid)
+			err := fe.Exporter.Write(c, worker.ConceptType, tid)
+			if err != nil {
+				fe.Log.WithTransactionID(tid).WithError(err).Warn("CSV exporter writing failed")
+			}
 		case err, ok := <-worker.Errch:
 			if !ok {
 				//channel closed
