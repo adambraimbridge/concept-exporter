@@ -39,10 +39,11 @@ type Concept struct {
 func (s *NeoService) Read(conceptType string, conceptCh chan Concept) (int, bool, error) {
 	results := []Concept{}
 	stmt := fmt.Sprintf(`
-		MATCH (c:%s)-[:MENTIONS|MAJOR_MENTIONS|ABOUT|IS_CLASSIFIED_BY|IS_PRIMARILY_CLASSIFIED_BY|HAS_AUTHOR|HAS_BRAND]-(cc:Content)
+		MATCH (x:%s)<-[:EQUIVALENT_TO]-(:Concept)<-[:MENTIONS|MAJOR_MENTIONS|ABOUT|IS_CLASSIFIED_BY|IS_PRIMARILY_CLASSIFIED_BY|HAS_AUTHOR|HAS_BRAND]-(:Content)
+		USING SCAN x:%s
 		MATCH (c)-[:EQUIVALENT_TO]->(x:Thing)
 		RETURN DISTINCT x.prefUUID AS Uuid, x.prefLabel AS PrefLabel, labels(x) AS Labels
-		`, conceptType)
+		`, conceptType, conceptType)
 
 	if conceptType == "Organisation" {
 		stmt = `
@@ -56,7 +57,8 @@ func (s *NeoService) Read(conceptType string, conceptCh chan Concept) (int, bool
 	}
 	if conceptType == "Person" {
 		stmt = `
-		MATCH (content:Content)-[:MENTIONS|MAJOR_MENTIONS|ABOUT|IS_CLASSIFIED_BY|IS_PRIMARILY_CLASSIFIED_BY|HAS_AUTHOR]->(:Person)-[:EQUIVALENT_TO]->(x:Thing)
+		MATCH (:Content)-[:MENTIONS|MAJOR_MENTIONS|ABOUT|IS_CLASSIFIED_BY|IS_PRIMARILY_CLASSIFIED_BY|HAS_AUTHOR]->(:Concept)-[:EQUIVALENT_TO]->(x:Person)
+		USING SCAN x:Person
 		RETURN DISTINCT x.prefUUID as Uuid, x.prefLabel as PrefLabel, labels(x) as Labels
 		`
 	}

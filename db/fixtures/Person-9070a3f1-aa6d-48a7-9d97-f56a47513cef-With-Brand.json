@@ -1,0 +1,56 @@
+{
+  "prefUUID": "9070a3f1-aa6d-48a7-9d97-f56a47513cef",
+  "prefLabel": "Jancis Robinson",
+  "type": "Person",
+  "aliases": [
+    "Jancis Mary Robinson",
+    "Jancis Robinson"
+  ],
+  "parentUUIDs": [
+    "dbb0bdae-1f0c-11e4-b0cb-b2227cce2b54"
+  ],
+  "descriptionXML": "<p>Jancis Robinson has been writing and broadcasting about wine since 1975, and has been the FT’s wine correspondent since 1989. Her principal occupation nowadays is www.jancisrobinson.com but she is also responsible for many of the standard reference books on wine including The Oxford Companion to Wine and, with Hugh Johnson, The World Atlas of Wine.</p>\n<p>She qualified as a Master of Wine, the first from outside the wine trade, in 1984, and regularly judges and lectures about wine around the world. She has presented several award-winning television programmes including Jancis Robinson’s Wine Course and Vintners’ Tales, and is a professional narrator.</p>",
+  "_imageUrl": "https://www.ft.com/__origami/service/image/v2/images/raw/fthead-v1:jancis-robinson?source=next",
+  "emailAddress": "jancis@jancisrobinson.com",
+  "twitterHandle": "@JancisRobinson",
+  "scopeNote": "Wine Columnist",
+  "sourceRepresentations": [
+    {
+      "uuid": "22a60434-a9d5-3a38-a337-fdd904e99f6f",
+      "type": "Person",
+      "prefLabel": "Jancis Robinson",
+      "authority": "Wikidata",
+      "authorityValue": "http://www.wikidata.org/entity/Q463895",
+      "scopeNote": "British journalist"
+    },
+    {
+      "uuid": "a7b4786c-aae9-3e3e-93a0-2c82a6383534",
+      "type": "Brand",
+      "prefLabel": "Jancis Robinson",
+      "authority": "TME",
+      "authorityValue": "QnJhbmRzXzgx-QnJhbmRz",
+      "aliases": [
+        "Jancis Robinson"
+      ],
+      "parentUUIDs": [
+        "dbb0bdae-1f0c-11e4-b0cb-b2227cce2b54"
+      ],
+      "isDeprecated": true
+    },
+    {
+      "uuid": "9070a3f1-aa6d-48a7-9d97-f56a47513cef",
+      "type": "Person",
+      "prefLabel": "Jancis Robinson",
+      "authority": "Smartlogic",
+      "authorityValue": "9070a3f1-aa6d-48a7-9d97-f56a47513cef",
+      "aliases": [
+        "Jancis Robinson"
+      ],
+      "descriptionXML": "<p>Jancis Robinson has been writing and broadcasting about wine since 1975, and has been the FT’s wine correspondent since 1989. Her principal occupation nowadays is www.jancisrobinson.com but she is also responsible for many of the standard reference books on wine including The Oxford Companion to Wine and, with Hugh Johnson, The World Atlas of Wine.</p>\n<p>She qualified as a Master of Wine, the first from outside the wine trade, in 1984, and regularly judges and lectures about wine around the world. She has presented several award-winning television programmes including Jancis Robinson’s Wine Course and Vintners’ Tales, and is a professional narrator.</p>",
+      "_imageUrl": "https://www.ft.com/__origami/service/image/v2/images/raw/fthead-v1:jancis-robinson?source=next",
+      "emailAddress": "jancis@jancisrobinson.com",
+      "twitterHandle": "@JancisRobinson",
+      "scopeNote": "Wine Columnist"
+    }
+  ]
+}
