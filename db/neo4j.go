@@ -46,13 +46,19 @@ func (s *NeoService) Read(conceptType string, conceptCh chan Concept) (int, bool
 
 	if conceptType == "Organisation" {
 		stmt = `
-		MATCH (content:Content)-[:MENTIONS|MAJOR_MENTIONS|ABOUT|IS_CLASSIFIED_BY|IS_PRIMARILY_CLASSIFIED_BY|HAS_AUTHOR]->(:Organisation)-[:EQUIVALENT_TO]->(x:Thing)
-		MATCH (x:Thing)<-[:EQUIVALENT_TO]-(concept)
+		MATCH (:Content)-[:MENTIONS|MAJOR_MENTIONS|ABOUT|IS_CLASSIFIED_BY|IS_PRIMARILY_CLASSIFIED_BY|HAS_AUTHOR]->()-[:EQUIVALENT_TO]->(x:Organisation)
+		USING SCAN x:Organisation
+		WITH DISTINCT x
+		MATCH (x)<-[:EQUIVALENT_TO]-(concept)
 		OPTIONAL MATCH (concept)<-[:ISSUED_BY]-(fi:FinancialInstrument)
-		RETURN DISTINCT x.prefUUID AS Uuid, labels(x) AS Labels, x.prefLabel AS PrefLabel,
-			CASE concept.authority WHEN 'FACTSET' THEN concept.authorityValue END AS factsetId,
-			x.leiCode AS leiCode, fi.figiCode AS FIGI
+		WITH x, collect(CASE concept.authority WHEN 'FACTSET' THEN concept.authorityValue END) AS factsetIds,
+			collect(fi.figiCode) as figiCodes 
+		RETURN x.prefUUID AS Uuid, labels(x) AS Labels, x.prefLabel AS PrefLabel, x.leiCode AS leiCode,
+			REDUCE(s=HEAD(factsetIds), n IN TAIL(factsetIds) | s + ';' + n) AS factsetId,
+			REDUCE(s=HEAD(figiCodes), n IN TAIL(figiCodes) | s + ';' + n) AS FIGI
 		`
+		//CASE size(factsetIds) WHEN 0 THEN null WHEN 1 THEN factsetIds[0] ELSE factsetIds END AS factsetId,
+		//CASE size(figiCodes) WHEN 0 THEN null WHEN 1 THEN figiCodes[0] ELSE figiCodes END AS FIGI
 	}
 	if conceptType == "Person" {
 		stmt = `
