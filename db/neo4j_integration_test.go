@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"reflect"
+	"regexp"
 	"testing"
 	"time"
 
@@ -204,37 +205,64 @@ func TestNeoService_ReadOrganisation(t *testing.T) {
 	svc := concepts.NewConceptService(conn)
 	assert.NoError(t, svc.Initialise())
 
-	cleanDB(t, conn)
-	writeJSONToConceptService(t, &svc, fmt.Sprintf("./fixtures/Organisation-Fakebook-%s.json", companyUUID))
-	writeJSONToConceptService(t, &svc, fmt.Sprintf("./fixtures/FinancialInstrument-%s.json", financialInstrumentUUID))
+	tests := []struct {
+		name                 string
+		fixture              string
+		expectedFactsetRegex string
+	}{
+		{
+			name:                 "Organisation with 0 Factset Sources",
+			fixture:              fmt.Sprintf("./fixtures/Organisation-Fakebook-%s.json", companyUUID),
+			expectedFactsetRegex: `^$`,
+		},
+		{
+			name:                 "Organisation with 1 Factset Sources",
+			fixture:              fmt.Sprintf("./fixtures/Organisation-Fakebook-%s-Factset.json", companyUUID),
+			expectedFactsetRegex: `^FACTSET1$`,
+		},
+		{
+			name:                 "Organisation with 2 Factset Sources",
+			fixture:              fmt.Sprintf("./fixtures/Organisation-Fakebook-%s-Factset2.json", companyUUID),
+			expectedFactsetRegex: `^FACTSET\d;FACTSET\d$`, // We cannot guarantee the order of the IDs
+		},
+	}
 
-	writeContent(t, conn)
-	writeAnnotation(t, conn, fmt.Sprintf("./fixtures/Annotations-%s-org.json", contentUUID), "v2")
-	neoSvc := NewNeoService(conn, "not-needed")
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			cleanDB(t, conn)
+			writeJSONToConceptService(t, &svc, test.fixture)
+			writeJSONToConceptService(t, &svc, fmt.Sprintf("./fixtures/FinancialInstrument-%s.json", financialInstrumentUUID))
 
-	conceptCh := make(chan Concept)
-	count, found, err := neoSvc.Read("Organisation", conceptCh)
+			writeContent(t, conn)
+			writeAnnotation(t, conn, fmt.Sprintf("./fixtures/Annotations-%s-org.json", contentUUID), "v2")
+			neoSvc := NewNeoService(conn, "not-needed")
 
-	assert.NoError(t, err, "Error reading from Neo")
-	assert.True(t, found)
-	assert.Equal(t, 1, count)
-waitLoop:
-	for {
-		select {
-		case c, open := <-conceptCh:
-			if !open {
-				break waitLoop
+			conceptCh := make(chan Concept)
+			count, found, err := neoSvc.Read("Organisation", conceptCh)
+
+			assert.NoError(t, err, "Error reading from Neo")
+			assert.True(t, found)
+			assert.Equal(t, 1, count)
+		waitLoop:
+			for {
+				select {
+				case c, open := <-conceptCh:
+					if !open {
+						break waitLoop
+					}
+					assert.Equal(t, "eac853f5-3859-4c08-8540-55e043719400", c.Uuid)
+					assert.Equal(t, "http://api.ft.com/things/eac853f5-3859-4c08-8540-55e043719400", c.Id)
+					assert.Equal(t, "http://api.ft.com/organisations/eac853f5-3859-4c08-8540-55e043719400", c.ApiUrl)
+					assert.Equal(t, "Fakebook", c.PrefLabel)
+					assertListContainsAll(t, []string{"Thing", "Concept", "Organisation", "PublicCompany", "Company"}, c.Labels)
+					assert.Equal(t, "PBLD0EJDB5FWOLXP3B76", c.LeiCode)
+					assert.Equal(t, "BB8000C3P0-R2D2", c.FIGI)
+					assert.Regexp(t, regexp.MustCompile(test.expectedFactsetRegex), c.FactsetId)
+				case <-time.After(3 * time.Second):
+					t.FailNow()
+				}
 			}
-			assert.Equal(t, "eac853f5-3859-4c08-8540-55e043719400", c.Uuid)
-			assert.Equal(t, "http://api.ft.com/things/eac853f5-3859-4c08-8540-55e043719400", c.Id)
-			assert.Equal(t, "http://api.ft.com/organisations/eac853f5-3859-4c08-8540-55e043719400", c.ApiUrl)
-			assert.Equal(t, "Fakebook", c.PrefLabel)
-			assertListContainsAll(t, []string{"Thing", "Concept", "Organisation", "PublicCompany", "Company"}, c.Labels)
-			assert.Equal(t, "PBLD0EJDB5FWOLXP3B76", c.LeiCode)
-			assert.Equal(t, "BB8000C3P0-R2D2", c.FIGI)
-		case <-time.After(3 * time.Second):
-			t.FailNow()
-		}
+		})
 	}
 }
 
