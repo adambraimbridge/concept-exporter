@@ -1,0 +1,28 @@
+[
+  {
+    "thing": {
+      "id": "http://api.ft.com/things/a7b4786c-aae9-3e3e-93a0-2c82a6383534",
+      "prefLabel": "Jancis Robinson",
+      "types": [
+        "Thing",
+        "Concept",
+        "Person"
+      ],
+      "predicate": "hasAuthor"
+    },
+    "provenances": [
+      {
+        "scores": [
+          {
+            "scoringSystem": "http://api.ft.com/scoringsystem/FT-RELEVANCE-SYSTEM",
+            "value": 1
+          },
+          {
+            "scoringSystem": "http://api.ft.com/scoringsystem/FT-CONFIDENCE-SYSTEM",
+            "value": 1
+          }
+        ]
+      }
+    ]
+  }
+]

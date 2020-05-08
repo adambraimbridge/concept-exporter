@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"reflect"
+	"regexp"
 	"testing"
 	"time"
 
@@ -30,9 +31,10 @@ const (
 	companyUUID             = "eac853f5-3859-4c08-8540-55e043719400"
 	organisationUUID        = "5d1510f8-2779-4b74-adab-0a5eb138fca6"
 	personUUID              = "b2fa511e-a031-4d52-b37d-72fd290b39ce"
+	personWithBrandUUID     = "9070a3f1-aa6d-48a7-9d97-f56a47513cef"
 )
 
-var allUUIDs = []string{contentUUID, brandParentUUID, brandChildUUID, brandGrandChildUUID, financialInstrumentUUID, companyUUID, organisationUUID}
+var allUUIDs = []string{contentUUID, brandParentUUID, brandChildUUID, brandGrandChildUUID, financialInstrumentUUID, companyUUID, organisationUUID, personUUID, personWithBrandUUID}
 
 func getDatabaseConnection(t *testing.T) neoutils.NeoConnection {
 	if testing.Short() {
@@ -203,37 +205,64 @@ func TestNeoService_ReadOrganisation(t *testing.T) {
 	svc := concepts.NewConceptService(conn)
 	assert.NoError(t, svc.Initialise())
 
-	cleanDB(t, conn)
-	writeJSONToConceptService(t, &svc, fmt.Sprintf("./fixtures/Organisation-Fakebook-%s.json", companyUUID))
-	writeJSONToConceptService(t, &svc, fmt.Sprintf("./fixtures/FinancialInstrument-%s.json", financialInstrumentUUID))
+	tests := []struct {
+		name                 string
+		fixture              string
+		expectedFactsetRegex string
+	}{
+		{
+			name:                 "Organisation with 0 Factset Sources",
+			fixture:              fmt.Sprintf("./fixtures/Organisation-Fakebook-%s.json", companyUUID),
+			expectedFactsetRegex: `^$`,
+		},
+		{
+			name:                 "Organisation with 1 Factset Sources",
+			fixture:              fmt.Sprintf("./fixtures/Organisation-Fakebook-%s-Factset.json", companyUUID),
+			expectedFactsetRegex: `^FACTSET1$`,
+		},
+		{
+			name:                 "Organisation with 2 Factset Sources",
+			fixture:              fmt.Sprintf("./fixtures/Organisation-Fakebook-%s-Factset2.json", companyUUID),
+			expectedFactsetRegex: `^FACTSET\d;FACTSET\d$`, // We cannot guarantee the order of the IDs
+		},
+	}
 
-	writeContent(t, conn)
-	writeAnnotation(t, conn, fmt.Sprintf("./fixtures/Annotations-%s-org.json", contentUUID), "v2")
-	neoSvc := NewNeoService(conn, "not-needed")
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			cleanDB(t, conn)
+			writeJSONToConceptService(t, &svc, test.fixture)
+			writeJSONToConceptService(t, &svc, fmt.Sprintf("./fixtures/FinancialInstrument-%s.json", financialInstrumentUUID))
 
-	conceptCh := make(chan Concept)
-	count, found, err := neoSvc.Read("Organisation", conceptCh)
+			writeContent(t, conn)
+			writeAnnotation(t, conn, fmt.Sprintf("./fixtures/Annotations-%s-org.json", contentUUID), "v2")
+			neoSvc := NewNeoService(conn, "not-needed")
 
-	assert.NoError(t, err, "Error reading from Neo")
-	assert.True(t, found)
-	assert.Equal(t, 1, count)
-waitLoop:
-	for {
-		select {
-		case c, open := <-conceptCh:
-			if !open {
-				break waitLoop
+			conceptCh := make(chan Concept)
+			count, found, err := neoSvc.Read("Organisation", conceptCh)
+
+			assert.NoError(t, err, "Error reading from Neo")
+			assert.True(t, found)
+			assert.Equal(t, 1, count)
+		waitLoop:
+			for {
+				select {
+				case c, open := <-conceptCh:
+					if !open {
+						break waitLoop
+					}
+					assert.Equal(t, "eac853f5-3859-4c08-8540-55e043719400", c.Uuid)
+					assert.Equal(t, "http://api.ft.com/things/eac853f5-3859-4c08-8540-55e043719400", c.Id)
+					assert.Equal(t, "http://api.ft.com/organisations/eac853f5-3859-4c08-8540-55e043719400", c.ApiUrl)
+					assert.Equal(t, "Fakebook", c.PrefLabel)
+					assertListContainsAll(t, []string{"Thing", "Concept", "Organisation", "PublicCompany", "Company"}, c.Labels)
+					assert.Equal(t, "PBLD0EJDB5FWOLXP3B76", c.LeiCode)
+					assert.Equal(t, "BB8000C3P0-R2D2", c.FIGI)
+					assert.Regexp(t, regexp.MustCompile(test.expectedFactsetRegex), c.FactsetId)
+				case <-time.After(3 * time.Second):
+					t.FailNow()
+				}
 			}
-			assert.Equal(t, "eac853f5-3859-4c08-8540-55e043719400", c.Uuid)
-			assert.Equal(t, "http://api.ft.com/things/eac853f5-3859-4c08-8540-55e043719400", c.Id)
-			assert.Equal(t, "http://api.ft.com/organisations/eac853f5-3859-4c08-8540-55e043719400", c.ApiUrl)
-			assert.Equal(t, "Fakebook", c.PrefLabel)
-			assertListContainsAll(t, []string{"Thing", "Concept", "Organisation", "PublicCompany", "Company"}, c.Labels)
-			assert.Equal(t, "PBLD0EJDB5FWOLXP3B76", c.LeiCode)
-			assert.Equal(t, "BB8000C3P0-R2D2", c.FIGI)
-		case <-time.After(3 * time.Second):
-			t.FailNow()
-		}
+		})
 	}
 }
 
@@ -242,33 +271,78 @@ func TestNeoService_ReadPerson(t *testing.T) {
 	svc := concepts.NewConceptService(conn)
 	assert.NoError(t, svc.Initialise())
 
-	cleanDB(t, conn)
-	writeJSONToConceptService(t, &svc, fmt.Sprintf("./fixtures/Person-%s.json", personUUID))
-	writeContent(t, conn)
-	writeAnnotation(t, conn, fmt.Sprintf("./fixtures/Annotations-%s-person.json", contentUUID), "pac")
-	neoSvc := NewNeoService(conn, "not-needed")
+	tests := []struct {
+		name               string
+		uuid               string
+		conceptFixture     string
+		annotationsFixture string
+		expectedCount      int
+		expectedPrefLabel  string
+		readAs             string
+	}{
+		{
+			name:               "Standard Person",
+			uuid:               personUUID,
+			conceptFixture:     fmt.Sprintf("./fixtures/Person-%s.json", personUUID),
+			annotationsFixture: fmt.Sprintf("./fixtures/Annotations-%s-person.json", contentUUID),
+			expectedCount:      1,
+			expectedPrefLabel:  "Peter Foster",
+			readAs:             "Person",
+		},
+		{
+			name:               "Person with Brand Read As Person",
+			uuid:               personWithBrandUUID,
+			conceptFixture:     fmt.Sprintf("./fixtures/Person-%s-With-Brand.json", personWithBrandUUID),
+			annotationsFixture: fmt.Sprintf("./fixtures/Annotations-%s-person-with-brand.json", contentUUID),
+			expectedCount:      1,
+			expectedPrefLabel:  "Jancis Robinson",
+			readAs:             "Person",
+		},
+		{
+			name:               "Person with Brand Not Read As Brand",
+			uuid:               personWithBrandUUID,
+			conceptFixture:     fmt.Sprintf("./fixtures/Person-%s-With-Brand.json", personWithBrandUUID),
+			annotationsFixture: fmt.Sprintf("./fixtures/Annotations-%s-person-with-brand.json", contentUUID),
+			expectedCount:      0,
+			readAs:             "Brand",
+		},
+	}
 
-	conceptCh := make(chan Concept)
-	count, found, err := neoSvc.Read("Person", conceptCh)
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			cleanDB(t, conn)
+			writeJSONToConceptService(t, &svc, test.conceptFixture)
+			writeContent(t, conn)
+			writeAnnotation(t, conn, test.annotationsFixture, "pac")
+			neoSvc := NewNeoService(conn, "not-needed")
 
-	assert.NoError(t, err, "Error reading from Neo")
-	assert.True(t, found)
-	assert.Equal(t, 1, count)
-waitLoop:
-	for {
-		select {
-		case c, open := <-conceptCh:
-			if !open {
-				break waitLoop
+			conceptCh := make(chan Concept)
+			count, found, err := neoSvc.Read(test.readAs, conceptCh)
+
+			assert.NoError(t, err, "Error reading from Neo")
+			assert.Equal(t, test.expectedCount, count)
+			if test.expectedCount == 0 {
+				assert.False(t, found)
+			} else {
+				assert.True(t, found)
+			waitLoop:
+				for {
+					select {
+					case c, open := <-conceptCh:
+						if !open {
+							break waitLoop
+						}
+						assert.Equal(t, test.uuid, c.Uuid)
+						assert.Equal(t, "http://api.ft.com/things/"+test.uuid, c.Id)
+						assert.Equal(t, "http://api.ft.com/people/"+test.uuid, c.ApiUrl)
+						assert.Equal(t, test.expectedPrefLabel, c.PrefLabel)
+						assertListContainsAll(t, []string{"Thing", "Concept", "Person"}, c.Labels)
+					case <-time.After(3 * time.Second):
+						t.FailNow()
+					}
+				}
 			}
-			assert.Equal(t, personUUID, c.Uuid)
-			assert.Equal(t, "http://api.ft.com/things/"+personUUID, c.Id)
-			assert.Equal(t, "http://api.ft.com/people/"+personUUID, c.ApiUrl)
-			assert.Equal(t, "Peter Foster", c.PrefLabel)
-			assertListContainsAll(t, []string{"Thing", "Concept", "Person"}, c.Labels)
-		case <-time.After(3 * time.Second):
-			t.FailNow()
-		}
+		})
 	}
 }
 
